@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\InventoryController;
+use App\Http\Controllers\Api\LoanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -44,4 +45,18 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/inventories/{id}', [InventoryController::class, 'show'])
         ->whereNumber('id')
         ->name('api.inventories.show');
+
+    // KTM streaming — owner or staff (Requirement 18.6)
+    Route::get('/loans/{id}/document', [LoanController::class, 'document'])
+        ->whereNumber('id')
+        ->name('api.loans.document');
+
+    // Student-only loan endpoints (Requirements 8, 11)
+    Route::middleware('role:student')->group(function (): void {
+        Route::get('/loans', [LoanController::class, 'index'])->name('api.loans.index');
+        Route::post('/loans', [LoanController::class, 'store'])->name('api.loans.store');
+        Route::get('/loans/{id}', [LoanController::class, 'show'])
+            ->whereNumber('id')
+            ->name('api.loans.show');
+    });
 });
