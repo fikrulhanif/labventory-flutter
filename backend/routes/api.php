@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\InventoryController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,4 +35,13 @@ Route::prefix('auth')->group(function (): void {
             Route::patch('/profile', [AuthController::class, 'updateProfile'])->name('api.auth.profile');
         });
     });
+});
+
+// Authenticated catalog endpoints (Requirements 7.1 — 7.7)
+Route::middleware('auth:sanctum')->group(function (): void {
+    Route::get('/categories', [CategoryController::class, 'index'])->name('api.categories.index');
+    Route::get('/inventories', [InventoryController::class, 'index'])->name('api.inventories.index');
+    Route::get('/inventories/{id}', [InventoryController::class, 'show'])
+        ->whereNumber('id')
+        ->name('api.inventories.show');
 });

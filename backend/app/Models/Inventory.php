@@ -113,11 +113,16 @@ class Inventory extends Model
      */
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(
-            fn (): ?string => $this->image
-                ? Storage::disk('public')->url($this->image)
-                : null,
-        );
+        return Attribute::get(function (): ?string {
+            if ($this->image === null) {
+                return null;
+            }
+
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+            $disk = Storage::disk('public');
+
+            return \Illuminate\Support\Facades\URL::to($disk->url($this->image));
+        });
     }
 
     /**
@@ -125,10 +130,15 @@ class Inventory extends Model
      */
     protected function qrUrl(): Attribute
     {
-        return Attribute::get(
-            fn (): ?string => $this->qr_code
-                ? Storage::disk('public')->url($this->qr_code)
-                : null,
-        );
+        return Attribute::get(function (): ?string {
+            if ($this->qr_code === null) {
+                return null;
+            }
+
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+            $disk = Storage::disk('public');
+
+            return \Illuminate\Support\Facades\URL::to($disk->url($this->qr_code));
+        });
     }
 }
