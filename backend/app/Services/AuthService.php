@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Exceptions\AccountDisabledException;
+use App\Exceptions\InvalidCredentialsException;
 use App\Models\FailedLogin;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -50,14 +52,12 @@ final class AuthService
     /**
      * Authenticate a student with NIM + password.
      *
-     * Throws ValidationException with the generic "Invalid credentials"
-     * message for any unknown NIM or wrong password (Requirements 2.2,
-     * 2.3) and a 403-style ValidationException for inactive accounts
-     * (Requirement 2.4).
+     * Throws InvalidCredentialsException (HTTP 401) for any unknown NIM or
+     * wrong password (Requirements 2.2, 2.3) and AccountDisabledException
+     * (HTTP 403) for inactive accounts (Requirement 2.4). Every failure
+     * appends a failed_logins audit row (Requirement 2.5).
      *
      * @return array{user: User, token: string}
-     *
-     * @throws ValidationException
      */
     public function login(string $nim, string $password, ?string $ip = null): array
     {
@@ -66,16 +66,12 @@ final class AuthService
 
         if ($user === null || ! Hash::check($password, $user->password)) {
             $this->logFailedLogin($nim, $ip);
-            throw ValidationException::withMessages([
-                'nim' => ['Invalid credentials'],
-            ])->status(401);
+            throw new InvalidCredentialsException();
         }
 
         if (! $user->isActive()) {
             $this->logFailedLogin($nim, $ip);
-            throw ValidationException::withMessages([
-                'nim' => ['Account is disabled'],
-            ])->status(403);
+            throw new AccountDisabledException();
         }
 
         $token = $user->createToken('mobile', [self::MOBILE_ABILITY])->plainTextToken;
