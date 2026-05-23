@@ -1,0 +1,81 @@
+# =============================================================================
+# Labventory - Root .gitignore
+# Note: backend/ and frontend/ have their own .gitignore for framework-specific
+# files. This file covers OS, editor, secrets, and project-level artifacts.
+# =============================================================================
+
+# ----- AI / Workflow / Local docs -----
+.kiro/
+docs/
+Prompt.txt
+*.prompt.txt
+
+# ----- Operating system -----
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ----- Editors / IDEs -----
+.vscode/
+.idea/
+.fleet/
+.zed/
+.cursor/
+.codex/
+.nova/
+*.iml
+*.ipr
+*.iws
+*.swp
+*.swo
+*~
+.history/
+
+# ----- Logs and temp files -----
+*.log
+*.bak
+*.tmp
+*.old
+*.orig
+logs/
+tmp/
+
+# ----- Secrets & credentials (defense in depth) -----
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.pfx
+*.p12
+auth.json
+secrets.json
+credentials.json
+
+# ----- Node (in case any tooling lives at root) -----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ----- Build artifacts (catch-all) -----
+build/
+dist/
+out/
+coverage/
+*.zip
+*.tar.gz
+*.7z
+
+# ----- Database dumps (project uses MySQL, so any local sqlite is dev-only) -----
+*.sql
+*.sqlite
+*.sqlite-journal

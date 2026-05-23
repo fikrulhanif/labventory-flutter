@@ -1,30 +1,20 @@
-// This is a basic Flutter widget test.
+// Smoke test for the Labventory bootstrap screen.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// This is a temporary test that just verifies the app boots and renders the
+// branded landing screen. Real screen/provider/widget tests are added in the
+// Flutter implementation tasks.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:frontend/main.dart';
+import 'package:labventory/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Labventory bootstrap screen renders', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const LabventoryApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Labventory'), findsOneWidget);
+    expect(find.text('Campus laboratory inventory borrowing'), findsOneWidget);
   });
 }
