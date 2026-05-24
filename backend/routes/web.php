@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Web\Auth\LoginController;
+use App\Http\Controllers\Web\CategoryController;
+use App\Http\Controllers\Web\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -41,5 +43,9 @@ Route::middleware(['auth', 'role:admin,laboran'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
-        Route::view('/', 'dashboard.index')->name('dashboard');
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Category CRUD (Requirements 5.1 — 5.6)
+        Route::resource('categories', CategoryController::class)
+            ->except(['show']);
     });

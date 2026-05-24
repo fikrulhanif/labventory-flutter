@@ -102,7 +102,8 @@
             <a href="#" class="disabled">
                 <i class="bi bi-boxes"></i> Inventories
             </a>
-            <a href="#" class="disabled">
+            <a href="{{ route('admin.categories.index') }}"
+               class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
                 <i class="bi bi-tags"></i> Categories
             </a>
 
