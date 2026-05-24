@@ -3,6 +3,7 @@
 use App\Http\Controllers\Web\Auth\LoginController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\InventoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -48,4 +49,7 @@ Route::middleware(['auth', 'role:admin,laboran'])
         // Category CRUD (Requirements 5.1 — 5.6)
         Route::resource('categories', CategoryController::class)
             ->except(['show']);
+
+        // Inventory CRUD (Requirements 6.1 — 6.9, 18.3)
+        Route::resource('inventories', InventoryController::class);
     });

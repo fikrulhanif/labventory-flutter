@@ -99,7 +99,8 @@
             </a>
 
             <div class="nav-section">Catalog</div>
-            <a href="#" class="disabled">
+            <a href="{{ route('admin.inventories.index') }}"
+               class="{{ request()->routeIs('admin.inventories.*') ? 'active' : '' }}">
                 <i class="bi bi-boxes"></i> Inventories
             </a>
             <a href="{{ route('admin.categories.index') }}"
