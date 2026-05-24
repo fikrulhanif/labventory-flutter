@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\InventoryController;
 use App\Http\Controllers\Web\LoanController;
+use App\Http\Controllers\Web\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -61,4 +62,8 @@ Route::middleware(['auth', 'role:admin,laboran'])
         Route::post('loans/{loan}/reject', [LoanController::class, 'reject'])->name('loans.reject');
         Route::post('loans/{loan}/pickup', [LoanController::class, 'pickup'])->name('loans.pickup');
         Route::post('loans/{loan}/return', [LoanController::class, 'return'])->name('loans.return');
+
+        // Student user management (Requirements 13.1 — 13.6)
+        Route::resource('users', UserController::class)
+            ->except(['show']);
     });

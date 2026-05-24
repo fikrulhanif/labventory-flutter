@@ -113,7 +113,8 @@
                class="{{ request()->routeIs('admin.loans.*') ? 'active' : '' }}">
                 <i class="bi bi-clipboard-check"></i> Loans
             </a>
-            <a href="#" class="disabled">
+            <a href="{{ route('admin.users.index') }}"
+               class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i> Users
             </a>
             <a href="#" class="disabled">
