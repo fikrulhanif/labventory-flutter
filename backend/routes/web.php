@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\Auth\LoginController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\InventoryController;
+use App\Http\Controllers\Web\LoanController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -52,4 +53,12 @@ Route::middleware(['auth', 'role:admin,laboran'])
 
         // Inventory CRUD (Requirements 6.1 — 6.9, 18.3)
         Route::resource('inventories', InventoryController::class);
+
+        // Loan workflow (Requirements 9.1 — 9.5, 10.1 — 10.8)
+        Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
+        Route::get('loans/{loan}', [LoanController::class, 'show'])->name('loans.show');
+        Route::post('loans/{loan}/approve', [LoanController::class, 'approve'])->name('loans.approve');
+        Route::post('loans/{loan}/reject', [LoanController::class, 'reject'])->name('loans.reject');
+        Route::post('loans/{loan}/pickup', [LoanController::class, 'pickup'])->name('loans.pickup');
+        Route::post('loans/{loan}/return', [LoanController::class, 'return'])->name('loans.return');
     });

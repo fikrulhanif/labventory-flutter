@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Exceptions\OutOfStockException;
 use App\Models\Inventory;
 use App\Models\Loan;
+use App\Models\LoanStatusHistory;
 use App\Models\User;
+use App\Support\LoanStateMachine;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
@@ -108,6 +110,152 @@ class LoanService
     }
 
     // ------------------------------------------------------------------
+    // Admin loan workflow transitions
+    //
+    // Each method runs inside DB::transaction with lockForUpdate on both
+    // the loan and the inventory row, validates the transition through
+    // LoanStateMachine, mutates state + appends an audit row, and returns
+    // the fresh loan model.
+    //
+    // Validates Requirements 9.3 — 9.5, 10.1 — 10.8, 18.4.
+    // ------------------------------------------------------------------
+
+    /**
+     * pending -> approved. Stock is intentionally NOT decremented here
+     * (Requirement 9.3).
+     */
+    public function approve(int $loanId, User $actor, ?string $note = null): Loan
+    {
+        return DB::transaction(function () use ($loanId, $actor, $note): Loan {
+            $loan = $this->lockLoan($loanId);
+
+            LoanStateMachine::assertTransition($loan->status, Loan::STATUS_APPROVED);
+
+            $previous = $loan->status;
+            $loan->status = Loan::STATUS_APPROVED;
+            $loan->save();
+
+            $this->appendHistory($loan, $previous, Loan::STATUS_APPROVED, $actor, $note);
+
+            return $loan->fresh(['user', 'inventory.category']);
+        });
+    }
+
+    /**
+     * pending -> rejected. Persists the admin's rejection reason on the
+     * loan row (Requirement 9.4).
+     */
+    public function reject(int $loanId, User $actor, string $reason): Loan
+    {
+        return DB::transaction(function () use ($loanId, $actor, $reason): Loan {
+            $loan = $this->lockLoan($loanId);
+
+            LoanStateMachine::assertTransition($loan->status, Loan::STATUS_REJECTED);
+
+            $previous = $loan->status;
+            $loan->status = Loan::STATUS_REJECTED;
+            $loan->reject_reason = $reason;
+            $loan->save();
+
+            $this->appendHistory($loan, $previous, Loan::STATUS_REJECTED, $actor, $reason);
+
+            return $loan->fresh(['user', 'inventory.category']);
+        });
+    }
+
+    /**
+     * approved -> borrowed. Decrements inventory stock by 1 atomically
+     * and stamps picked_up_at (Requirements 10.1, 10.6, 10.7).
+     */
+    public function markPickedUp(int $loanId, User $actor, ?string $note = null): Loan
+    {
+        return DB::transaction(function () use ($loanId, $actor, $note): Loan {
+            $loan = $this->lockLoan($loanId);
+
+            LoanStateMachine::assertTransition($loan->status, Loan::STATUS_BORROWED);
+
+            /** @var Inventory $inventory */
+            $inventory = Inventory::query()
+                ->lockForUpdate()
+                ->findOrFail($loan->inventory_id);
+
+            if ($inventory->stock <= 0) {
+                throw new OutOfStockException();
+            }
+
+            $inventory->stock -= 1;
+            $inventory->status = $inventory->stock > 0
+                ? Inventory::STATUS_AVAILABLE
+                : Inventory::STATUS_OUT_OF_STOCK;
+            $inventory->save();
+
+            $previous = $loan->status;
+            $loan->status = Loan::STATUS_BORROWED;
+            $loan->picked_up_at = now();
+            $loan->save();
+
+            $this->appendHistory($loan, $previous, Loan::STATUS_BORROWED, $actor, $note);
+
+            return $loan->fresh(['user', 'inventory.category']);
+        });
+    }
+
+    /**
+     * borrowed -> returned. Increments inventory stock by 1 atomically
+     * and stamps returned_at (Requirements 10.4, 10.6, 10.7).
+     */
+    public function markReturned(int $loanId, User $actor, ?string $note = null): Loan
+    {
+        return DB::transaction(function () use ($loanId, $actor, $note): Loan {
+            $loan = $this->lockLoan($loanId);
+
+            LoanStateMachine::assertTransition($loan->status, Loan::STATUS_RETURNED);
+
+            /** @var Inventory $inventory */
+            $inventory = Inventory::query()
+                ->lockForUpdate()
+                ->findOrFail($loan->inventory_id);
+
+            $inventory->stock += 1;
+            $inventory->status = Inventory::STATUS_AVAILABLE;
+            $inventory->save();
+
+            $previous = $loan->status;
+            $loan->status = Loan::STATUS_RETURNED;
+            $loan->returned_at = now();
+            $loan->save();
+
+            $this->appendHistory($loan, $previous, Loan::STATUS_RETURNED, $actor, $note);
+
+            return $loan->fresh(['user', 'inventory.category']);
+        });
+    }
+
+    /**
+     * Paginated, filterable list for the admin dashboard.
+     * Sorted by created_at DESC (Requirement 9.1).
+     *
+     * @param  array{status?: string|null, user_id?: int|string|null, inventory_id?: int|string|null, per_page?: int|string|null}  $filters
+     */
+    public function listForAdmin(array $filters = []): LengthAwarePaginator
+    {
+        $query = Loan::query()
+            ->with(['inventory.category', 'user'])
+            ->orderByDesc('created_at');
+
+        $this->applyStatusFilter($query, $filters['status'] ?? null);
+
+        if (! empty($filters['user_id'])) {
+            $query->where('user_id', (int) $filters['user_id']);
+        }
+        if (! empty($filters['inventory_id'])) {
+            $query->where('inventory_id', (int) $filters['inventory_id']);
+        }
+
+        return $query->paginate($this->resolvePerPage($filters['per_page'] ?? null));
+    }
+
+    // ------------------------------------------------------------------
     // Internal helpers
     // ------------------------------------------------------------------
 
@@ -157,5 +305,38 @@ class LoanService
         $filename = Str::random(40).'.'.$extension;
 
         return $file->storeAs(self::KTM_DIR, $filename, self::KTM_DISK);
+    }
+
+    /**
+     * Acquire a row-level lock on the loan row before mutating state.
+     */
+    private function lockLoan(int $loanId): Loan
+    {
+        /** @var Loan $loan */
+        $loan = Loan::query()
+            ->lockForUpdate()
+            ->findOrFail($loanId);
+
+        return $loan;
+    }
+
+    /**
+     * Append an audit row to loan_status_history.
+     */
+    private function appendHistory(
+        Loan $loan,
+        string $from,
+        string $to,
+        User $actor,
+        ?string $note,
+    ): void {
+        LoanStatusHistory::create([
+            'loan_id' => $loan->id,
+            'actor_user_id' => $actor->id,
+            'from_status' => $from,
+            'to_status' => $to,
+            'note' => $note,
+            'created_at' => now(),
+        ]);
     }
 }

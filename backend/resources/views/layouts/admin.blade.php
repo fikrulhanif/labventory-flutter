@@ -109,7 +109,8 @@
             </a>
 
             <div class="nav-section">Operations</div>
-            <a href="#" class="disabled">
+            <a href="{{ route('admin.loans.index') }}"
+               class="{{ request()->routeIs('admin.loans.*') ? 'active' : '' }}">
                 <i class="bi bi-clipboard-check"></i> Loans
             </a>
             <a href="#" class="disabled">
