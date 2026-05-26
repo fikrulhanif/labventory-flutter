@@ -147,7 +147,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     prefixIcon: Icon(Icons.lock_outline),
                   ),
                   validator: Validators.confirmPassword(
-                    _newPasswordController.text,
+                    () => _newPasswordController.text,
                   ),
                 ),
               ],

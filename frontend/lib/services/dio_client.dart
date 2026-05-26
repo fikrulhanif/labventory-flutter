@@ -38,9 +38,13 @@ class DioClient {
     final dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
-        sendTimeout: const Duration(seconds: 30),
+        // Generous timeouts: `php artisan serve` is single-threaded and
+        // the very first hit of the day pays a cold-start tax (Laravel
+        // boot + MySQL connection + bcrypt hashing). 15s was tight; 60s
+        // leaves headroom without making the UX feel hung.
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 60),
+        sendTimeout: const Duration(seconds: 60),
         headers: const {'Accept': 'application/json'},
         // Don't auto-throw on 4xx; services translate the envelope
         // themselves so they can keep typed errors.

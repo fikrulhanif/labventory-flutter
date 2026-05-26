@@ -137,7 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           icon: Icons.lock_outline,
                           obscure: !_showPassword,
                           validator: Validators.confirmPassword(
-                            _passwordController.text,
+                            () => _passwordController.text,
                           ),
                         ),
                         if (auth.errorMessage != null) ...[

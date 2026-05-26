@@ -40,12 +40,19 @@ class Validators {
     return null;
   }
 
-  static String? Function(String?) confirmPassword(String original) {
+  /// Returns a validator that compares the field value to whatever
+  /// `originalProvider()` returns at validation time. Pass a closure
+  /// (e.g. `() => passwordController.text`) instead of a snapshot
+  /// string so the validator always sees the current value rather
+  /// than the value as of the last `build()`.
+  static String? Function(String?) confirmPassword(
+    String Function() originalProvider,
+  ) {
     return (String? value) {
       if (value == null || value.isEmpty) {
         return 'Confirm your password.';
       }
-      if (value != original) {
+      if (value != originalProvider()) {
         return 'Passwords do not match.';
       }
       return null;

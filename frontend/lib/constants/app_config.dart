@@ -25,7 +25,7 @@ class AppConfig {
 
   // Kalau IP laptop berubah, update string di bawah ini.
   // ============================================================
-  static const String baseUrl = "http://192.168.1.6:8000/api";
+  static const String baseUrl = "http://192.168.1.4:8000/api";
 
   /// Optional override at build time without editing this file:
   ///     flutter run --dart-define=API_BASE_URL=http://1.2.3.4:8000/api
