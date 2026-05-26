@@ -1,8 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for Dio HTTP requests -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Required for image_picker camera capture -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
     <application
         android:label="Labventory"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

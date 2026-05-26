@@ -5,6 +5,11 @@ import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/inventory/detail_screen.dart';
 import '../screens/inventory/list_screen.dart';
+import '../screens/loan/create_screen.dart';
+import '../screens/loan/detail_screen.dart';
+import '../screens/loan/history_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/profile_screen.dart';
 import '../screens/splash/splash_screen.dart';
 
 /// Centralized route table for the Labventory mobile app.
@@ -42,6 +47,16 @@ class AppRouter {
         return _build(settings, const InventoryListScreen());
       case inventoryDetail:
         return _build(settings, const InventoryDetailScreen());
+      case loanCreate:
+        return _build(settings, const LoanCreateScreen());
+      case loanHistory:
+        return _build(settings, const LoanHistoryScreen());
+      case loanDetail:
+        return _build(settings, const LoanDetailScreen());
+      case profile:
+        return _build(settings, const ProfileScreen());
+      case profileEdit:
+        return _build(settings, const EditProfileScreen());
       default:
         return _build(
           settings,

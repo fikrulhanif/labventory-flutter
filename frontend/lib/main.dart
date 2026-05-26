@@ -5,6 +5,7 @@ import 'constants/app_colors.dart';
 import 'constants/app_text_styles.dart';
 import 'providers/auth_provider.dart';
 import 'providers/inventory_provider.dart';
+import 'providers/loan_provider.dart';
 import 'routes/app_router.dart';
 import 'services/dio_client.dart';
 
@@ -25,6 +26,7 @@ class LabventoryApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
+        ChangeNotifierProvider(create: (_) => LoanProvider()),
       ],
       child: Builder(
         builder: (context) {
