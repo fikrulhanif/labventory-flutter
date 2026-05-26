@@ -1,22 +1,15 @@
+import 'app_config.dart';
+
 /// Centralized API endpoint catalog so screens never hardcode URL paths.
 ///
-/// The base URL is read from a `--dart-define=API_BASE_URL=...` build-time
-/// flag and falls back to the Android emulator host (`10.0.2.2`) which is
-/// the only reliable way for the emulator to reach the host machine's
-/// `php artisan serve`. iOS simulator and desktop targets need to override
-/// this via `--dart-define`.
+/// The base URL is read from [AppConfig] (which encodes the laptop / WiFi
+/// IP shorthand) and is also overridable at build time via
+/// `--dart-define=API_BASE_URL=...` for ad-hoc testing.
 class ApiConstants {
   ApiConstants._();
 
-  /// Reach Laravel's `php artisan serve` on http://127.0.0.1:8000 from an
-  /// Android emulator via the loopback alias 10.0.2.2.
-  static const String defaultBaseUrl = 'http://10.0.2.2:8000/api';
-
-  /// Override at build time: `flutter run --dart-define=API_BASE_URL=...`
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: defaultBaseUrl,
-  );
+  /// The active base URL — pulls from `AppConfig.apiBaseUrl`.
+  static String get baseUrl => AppConfig.apiBaseUrl;
 
   // ---- Auth (Requirement 17.5) ----
   static const String authRegister = '/auth/register';

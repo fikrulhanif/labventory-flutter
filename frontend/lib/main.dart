@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'constants/app_colors.dart';
 import 'constants/app_text_styles.dart';
+import 'providers/auth_provider.dart';
+import 'routes/app_router.dart';
 import 'services/dio_client.dart';
 
 void main() {
-  // Eagerly build the Dio singleton so the AuthInterceptor + ResponseInterceptor
-  // are registered before any service fires its first request. Auth providers
-  // and routers in later tasks (15+) will hook themselves to the on-401
-  // callback via DioClient.configureOnUnauthenticated.
+  // Build the Dio singleton early so AuthInterceptor + ResponseInterceptor
+  // are wired before any service request fires.
   DioClient.instance;
 
   runApp(const LabventoryApp());
@@ -19,13 +20,28 @@ class LabventoryApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Labventory',
-      debugShowCheckedModeBanner: false,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
-      themeMode: ThemeMode.system,
-      home: const _BootstrapScreen(),
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      child: Builder(
+        builder: (context) {
+          // Hand the on-401 callback to the Dio client so the response
+          // interceptor can cleanly bounce back to /login when a token
+          // is revoked from outside the splash bootstrap.
+          DioClient.configureOnUnauthenticated(() {
+            context.read<AuthProvider>().onTokenRevoked();
+          });
+
+          return MaterialApp(
+            title: 'Labventory',
+            debugShowCheckedModeBanner: false,
+            theme: _buildTheme(Brightness.light),
+            darkTheme: _buildTheme(Brightness.dark),
+            themeMode: ThemeMode.system,
+            initialRoute: AppRouter.splash,
+            onGenerateRoute: AppRouter.onGenerateRoute,
+          );
+        },
+      ),
     );
   }
 
@@ -62,47 +78,6 @@ class LabventoryApp extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 12,
-        ),
-      ),
-    );
-  }
-}
-
-/// Temporary landing screen shown before the real splash, auth, and inventory
-/// screens are wired up in Task 15+.
-class _BootstrapScreen extends StatelessWidget {
-  const _BootstrapScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/logo_transparant.png', height: 120),
-                const SizedBox(height: 24),
-                Text(
-                  'Labventory',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Campus laboratory inventory borrowing',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
