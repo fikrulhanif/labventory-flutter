@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/inventory/detail_screen.dart';
+import '../screens/inventory/list_screen.dart';
 import '../screens/splash/splash_screen.dart';
 
 /// Centralized route table for the Labventory mobile app.
@@ -36,6 +38,10 @@ class AppRouter {
         return _build(settings, const RegisterScreen());
       case home:
         return _build(settings, const HomeScreen());
+      case inventoryList:
+        return _build(settings, const InventoryListScreen());
+      case inventoryDetail:
+        return _build(settings, const InventoryDetailScreen());
       default:
         return _build(
           settings,

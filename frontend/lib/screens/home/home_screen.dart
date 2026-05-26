@@ -65,6 +65,13 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              FilledButton.icon(
+                icon: const Icon(Icons.inventory_2_outlined),
+                label: const Text('Browse inventory'),
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(AppRouter.inventoryList),
+              ),
+              const SizedBox(height: 16),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -77,8 +84,8 @@ class HomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Inventory browsing, loan submission, and history will '
-                        'land in the next tasks.',
+                        'Loan submission, history, and profile editing land in '
+                        'the next tasks.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
