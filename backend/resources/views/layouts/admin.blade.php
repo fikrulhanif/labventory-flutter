@@ -120,7 +120,8 @@
             <a href="#" class="disabled">
                 <i class="bi bi-file-earmark-pdf"></i> Reports
             </a>
-            <a href="#" class="disabled">
+            <a href="{{ route('admin.qr.scan') }}"
+               class="{{ request()->routeIs('admin.qr.*') ? 'active' : '' }}">
                 <i class="bi bi-qr-code-scan"></i> QR Scan
             </a>
         </nav>

@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\InventoryController;
 use App\Http\Controllers\Web\LoanController;
+use App\Http\Controllers\Web\QrController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,4 +67,8 @@ Route::middleware(['auth', 'role:admin,laboran'])
         // Student user management (Requirements 13.1 — 13.6)
         Route::resource('users', UserController::class)
             ->except(['show']);
+
+        // QR scan + code lookup (Requirements 15.6, 15.7)
+        Route::get('qr/scan', [QrController::class, 'scan'])->name('qr.scan');
+        Route::get('qr/lookup', [QrController::class, 'lookup'])->name('qr.lookup');
     });

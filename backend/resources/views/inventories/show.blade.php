@@ -99,7 +99,7 @@
                              style="height:200px;">
                             <i class="bi bi-qr-code display-5 text-muted"></i>
                         </div>
-                        <p class="text-muted small mb-0">QR code is generated automatically when QR feature lands.</p>
+                        <p class="text-muted small mb-0">QR not yet generated for this inventory.</p>
                     @endif
                 </div>
             </div>

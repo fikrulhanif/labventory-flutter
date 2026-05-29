@@ -32,6 +32,10 @@ class InventoryService
 
     public const MAX_PAGE_SIZE = 50;
 
+    public function __construct(private readonly QrCodeService $qrCodeService)
+    {
+    }
+
     /**
      * Paginated inventory list. Filters are optional and combinable.
      *
@@ -74,6 +78,12 @@ class InventoryService
             $inventory = Inventory::create($attributes);
             $this->recomputeStatus($inventory);
 
+            // Inventory always has a non-null `code` on create, so always
+            // generate a QR (Requirement 15.1, 15.2). Failures are logged
+            // by QrCodeService and leave qr_code = null; they must not
+            // abort the surrounding transaction.
+            $this->qrCodeService->generateFor($inventory);
+
             return $inventory->fresh('category');
         });
     }
@@ -89,6 +99,12 @@ class InventoryService
         return DB::transaction(function () use ($inventory, $data, $image) {
             $attributes = $this->extractWritable($data);
 
+            // Detect whether the `code` field changed before we save so
+            // we know whether to regenerate the QR (Requirement 15.3).
+            $previousCode = $inventory->code;
+            $codeWillChange = array_key_exists('code', $attributes)
+                && (string) $attributes['code'] !== (string) $previousCode;
+
             if ($image !== null) {
                 $oldPath = $inventory->image;
                 $attributes['image'] = $this->storeImage($image);
@@ -101,6 +117,14 @@ class InventoryService
             }
 
             $this->recomputeStatus($inventory);
+
+            // Regenerate QR when the code changed, or when the inventory
+            // never had a QR file yet (e.g. created before QrCodeService
+            // existed). Either way, QrCodeService deletes the previous
+            // file before persisting the new one.
+            if ($codeWillChange || $inventory->qr_code === null) {
+                $this->qrCodeService->generateFor($inventory);
+            }
 
             return $inventory->fresh('category');
         });
