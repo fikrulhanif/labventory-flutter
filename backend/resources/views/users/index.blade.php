@@ -49,7 +49,12 @@
                         <tbody>
                             @foreach ($users as $user)
                                 <tr>
-                                    <td class="ps-4 fw-medium">{{ $user->name }}</td>
+                                    <td class="ps-4 fw-medium">
+                                        <a href="{{ route('admin.users.show', $user) }}"
+                                           class="text-decoration-none text-reset">
+                                            {{ $user->name }}
+                                        </a>
+                                    </td>
                                     <td><span class="text-muted small">{{ $user->nim }}</span></td>
                                     <td><span class="text-muted small">{{ $user->email }}</span></td>
                                     <td>
@@ -65,6 +70,11 @@
                                         </span>
                                     </td>
                                     <td class="pe-4 text-end">
+                                        <a href="{{ route('admin.users.show', $user) }}"
+                                           class="btn btn-sm btn-light"
+                                           title="View loan history">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
                                         <a href="{{ route('admin.users.edit', $user) }}"
                                            class="btn btn-sm btn-light">
                                             <i class="bi bi-pencil"></i>

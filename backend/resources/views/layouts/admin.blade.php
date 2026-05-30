@@ -117,7 +117,8 @@
                class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i> Users
             </a>
-            <a href="#" class="disabled">
+            <a href="{{ route('admin.reports.index') }}"
+               class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                 <i class="bi bi-file-earmark-pdf"></i> Reports
             </a>
             <a href="{{ route('admin.qr.scan') }}"

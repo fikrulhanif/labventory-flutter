@@ -69,6 +69,58 @@ class UserController extends Controller
         return view('users.create', ['user' => null]);
     }
 
+    /**
+     * Detail page for a single student: profile summary, loan
+     * statistics, and a paginated, status-filterable history of every
+     * loan they ever submitted. Linked from the index "Detail" button.
+     */
+    public function show(Request $request, User $user): View
+    {
+        $this->ensureStudent($user);
+
+        // Status filter is optional. Empty string == "all statuses".
+        $allowedStatuses = Loan::ALL_STATUSES;
+        $status = (string) $request->query('status', '');
+        if ($status !== '' && ! in_array($status, $allowedStatuses, true)) {
+            $status = '';
+        }
+
+        $loanQuery = Loan::query()
+            ->forUser($user->id)
+            ->with('inventory')
+            ->orderByDesc('created_at');
+
+        if ($status !== '') {
+            $loanQuery->withStatus($status);
+        }
+
+        $loans = $loanQuery->paginate(10)->withQueryString();
+
+        // Aggregate stats over the entire history (NOT the filtered
+        // page) so the cards always show the full picture.
+        $statusCounts = Loan::query()
+            ->forUser($user->id)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $stats = [
+            'total'     => (int) $statusCounts->sum(),
+            'pending'   => (int) ($statusCounts[Loan::STATUS_PENDING]  ?? 0),
+            'approved'  => (int) ($statusCounts[Loan::STATUS_APPROVED] ?? 0),
+            'borrowed'  => (int) ($statusCounts[Loan::STATUS_BORROWED] ?? 0),
+            'returned'  => (int) ($statusCounts[Loan::STATUS_RETURNED] ?? 0),
+            'rejected'  => (int) ($statusCounts[Loan::STATUS_REJECTED] ?? 0),
+        ];
+
+        return view('users.show', [
+            'user'   => $user,
+            'loans'  => $loans,
+            'stats'  => $stats,
+            'status' => $status,
+        ]);
+    }
+
     public function store(StoreUserRequest $request): RedirectResponse
     {
         User::create([

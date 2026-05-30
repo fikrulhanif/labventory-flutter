@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\InventoryController;
 use App\Http\Controllers\Web\LoanController;
 use App\Http\Controllers\Web\QrController;
+use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -65,10 +66,28 @@ Route::middleware(['auth', 'role:admin,laboran'])
         Route::post('loans/{loan}/return', [LoanController::class, 'return'])->name('loans.return');
 
         // Student user management (Requirements 13.1 — 13.6)
-        Route::resource('users', UserController::class)
-            ->except(['show']);
+        Route::resource('users', UserController::class);
 
         // QR scan + code lookup (Requirements 15.6, 15.7)
         Route::get('qr/scan', [QrController::class, 'scan'])->name('qr.scan');
         Route::get('qr/lookup', [QrController::class, 'lookup'])->name('qr.lookup');
+
+        // PDF reports (Requirements 16.1 — 16.5)
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/inventory/preview', [ReportController::class, 'previewInventory'])
+            ->name('reports.inventory.preview');
+        Route::get('reports/loans/preview', [ReportController::class, 'previewLoans'])
+            ->name('reports.loans.preview');
+        Route::get('reports/borrowed/preview', [ReportController::class, 'previewBorrowed'])
+            ->name('reports.borrowed.preview');
+        Route::get('reports/popular/preview', [ReportController::class, 'previewPopular'])
+            ->name('reports.popular.preview');
+        Route::get('reports/inventory.pdf', [ReportController::class, 'inventory'])
+            ->name('reports.inventory');
+        Route::get('reports/loans.pdf', [ReportController::class, 'loans'])
+            ->name('reports.loans');
+        Route::get('reports/borrowed.pdf', [ReportController::class, 'borrowed'])
+            ->name('reports.borrowed');
+        Route::get('reports/popular.pdf', [ReportController::class, 'popular'])
+            ->name('reports.popular');
     });
