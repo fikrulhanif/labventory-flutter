@@ -3,209 +3,281 @@
 @section('title', 'Loan #'.$loan->id)
 
 @php
-    $statusColors = [
-        'pending'  => 'warning',
-        'approved' => 'info',
-        'borrowed' => 'primary',
-        'returned' => 'success',
-        'rejected' => 'secondary',
-    ];
-
     $documentExt = strtolower(pathinfo($loan->document, PATHINFO_EXTENSION));
     $isPdf = $documentExt === 'pdf';
+
+    $toneMap = [
+        'pending'  => 'lv-pill-pending',
+        'approved' => 'lv-pill-approved',
+        'borrowed' => 'lv-pill-borrowed',
+        'returned' => 'lv-pill-returned',
+        'rejected' => 'lv-pill-rejected',
+    ];
+
+    $historyTone = [
+        'pending'  => '#f59e0b',
+        'approved' => '#0891b2',
+        'borrowed' => '#7c3aed',
+        'returned' => '#16a34a',
+        'rejected' => '#6b7280',
+    ];
 @endphp
 
 @section('content')
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb small mb-0">
+    {{-- Breadcrumb --}}
+    <nav aria-label="breadcrumb" style="margin-bottom:16px;">
+        <ol class="breadcrumb" style="font-size:.75rem;margin:0;">
             <li class="breadcrumb-item"><a href="{{ route('admin.loans.index') }}">Loans</a></li>
-            <li class="breadcrumb-item active" aria-current="page">#{{ $loan->id }}</li>
+            <li class="breadcrumb-item active">#{{ $loan->id }}</li>
         </ol>
     </nav>
 
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
-        <div>
-            <h1 class="h4 mb-1 fw-semibold">Loan #{{ $loan->id }}</h1>
-            <span class="badge text-bg-{{ $statusColors[$loan->status] ?? 'secondary' }} text-uppercase">
-                {{ $loan->status }}
+    <div class="lv-page-header">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div>
+                <h1>Loan #{{ $loan->id }}</h1>
+                <p>Submitted {{ $loan->created_at?->diffForHumans() }}</p>
+            </div>
+            <span class="lv-pill {{ $toneMap[$loan->status] ?? 'lv-pill-rejected' }}" style="font-size:.75rem;">
+                {{ ucfirst($loan->status) }}
             </span>
         </div>
-        <div class="d-flex flex-wrap gap-2">
+
+        {{-- Action buttons --}}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
             @if ($loan->status === 'pending')
                 <form method="POST" action="{{ route('admin.loans.approve', $loan) }}"
-                      onsubmit="return confirm('Approve this loan request?');">
+                      data-confirm="Approve this loan request for {{ $loan->user?->name }}?"
+                      data-confirm-title="Approve loan"
+                      data-confirm-yes="Yes, approve"
+                      data-confirm-tone="info">
                     @csrf
-                    <button class="btn btn-info">
-                        <i class="bi bi-check-lg me-1"></i> Approve
+                    <button class="btn btn-sm" style="background:#0ea5e9;color:#fff;border:none;">
+                        <i class="bi bi-check-lg me-1"></i>Approve
                     </button>
                 </form>
-                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
-                    <i class="bi bi-x-lg me-1"></i> Reject
+                <button class="btn btn-sm"
+                        style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;"
+                        onclick="lvShowRejectModal()">
+                    <i class="bi bi-x-lg me-1"></i>Reject
                 </button>
             @elseif ($loan->status === 'approved')
                 <form method="POST" action="{{ route('admin.loans.pickup', $loan) }}"
-                      onsubmit="return confirm('Mark this loan as picked up? Stock will decrement by 1.');">
+                      data-confirm="Mark this item as picked up? Stock will decrement by 1."
+                      data-confirm-title="Mark as picked up"
+                      data-confirm-yes="Yes, picked up"
+                      data-confirm-tone="warning">
                     @csrf
-                    <button class="btn btn-primary">
-                        <i class="bi bi-box-arrow-up-right me-1"></i> Mark as picked up
+                    <button class="btn btn-primary btn-sm">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Mark as picked up
                     </button>
                 </form>
             @elseif ($loan->status === 'borrowed')
                 <form method="POST" action="{{ route('admin.loans.return', $loan) }}"
-                      onsubmit="return confirm('Mark this item as returned? Stock will increment by 1.');">
+                      data-confirm="Mark this item as returned? Stock will increment by 1."
+                      data-confirm-title="Mark as returned"
+                      data-confirm-yes="Yes, returned"
+                      data-confirm-tone="info">
                     @csrf
-                    <button class="btn btn-success">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Mark as returned
+                    <button class="btn btn-sm" style="background:#10b981;color:#fff;border:none;">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Mark as returned
                     </button>
                 </form>
             @endif
+            <a href="{{ route('admin.loans.index') }}" class="btn btn-ghost btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </a>
         </div>
     </div>
 
     <div class="row g-4">
+        {{-- Left: details + history --}}
         <div class="col-12 col-lg-8">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3 border-0">
-                    <h2 class="h6 mb-0 fw-semibold">Request details</h2>
-                </div>
-                <div class="card-body p-4">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4 text-muted small">Student</dt>
-                        <dd class="col-sm-8">
-                            {{ $loan->user?->name ?? '-' }}
-                            <div class="text-muted small">
-                                NIM {{ $loan->user?->nim ?? '-' }} · {{ $loan->user?->email ?? '-' }}
-                            </div>
-                        </dd>
 
-                        <dt class="col-sm-4 text-muted small">Inventory</dt>
-                        <dd class="col-sm-8">
-                            <a href="{{ route('admin.inventories.show', $loan->inventory) }}">
-                                {{ $loan->inventory?->name ?? '-' }}
+            {{-- Student + inventory card --}}
+            <div class="lv-card" style="margin-bottom:16px;">
+                <div class="lv-card-header">
+                    <span class="lv-card-title"><i class="bi bi-info-circle me-2 text-primary"></i>Request details</span>
+                </div>
+                <div style="padding:20px;">
+                    <div class="row g-4">
+                        {{-- Student --}}
+                        <div class="col-12 col-sm-6">
+                            <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:8px;">Student</div>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;flex-shrink:0;">
+                                    {{ strtoupper(substr($loan->user?->name ?? '?', 0, 1)) }}
+                                </div>
+                                <div>
+                                    <a href="{{ route('admin.users.show', $loan->user) }}"
+                                       style="font-weight:600;color:#111827;text-decoration:none;">
+                                        {{ $loan->user?->name ?? '—' }}
+                                    </a>
+                                    <div style="font-size:.72rem;color:#9ca3af;">NIM <code>{{ $loan->user?->nim ?? '—' }}</code></div>
+                                    <div style="font-size:.72rem;color:#9ca3af;">{{ $loan->user?->email ?? '' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {{-- Inventory --}}
+                        <div class="col-12 col-sm-6">
+                            <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:8px;">Inventory</div>
+                            <a href="{{ route('admin.inventories.show', $loan->inventory) }}"
+                               style="font-weight:600;color:#111827;text-decoration:none;">
+                                {{ $loan->inventory?->name ?? '—' }}
                             </a>
-                            <div class="text-muted small">
+                            <div style="font-size:.72rem;color:#9ca3af;margin-top:2px;">
                                 <code>{{ $loan->inventory?->code ?? '' }}</code>
-                                · {{ $loan->inventory?->category?->name ?? '-' }}
-                                · stock now: {{ $loan->inventory?->stock ?? 0 }}
+                                · {{ $loan->inventory?->category?->name ?? '—' }}
+                                · Stock now: <strong>{{ $loan->inventory?->stock ?? 0 }}</strong>
                             </div>
-                        </dd>
+                        </div>
+                    </div>
 
-                        <dt class="col-sm-4 text-muted small">Borrow date</dt>
-                        <dd class="col-sm-8">{{ $loan->borrow_date?->toDateString() }}</dd>
+                    <hr style="border-color:#f0f2f8;margin:16px 0;">
 
-                        <dt class="col-sm-4 text-muted small">Return date</dt>
-                        <dd class="col-sm-8">{{ $loan->return_date?->toDateString() }}</dd>
+                    {{-- Dates grid --}}
+                    <div class="row g-3">
+                        @php
+                            $cells = [
+                                ['Borrow date',   $loan->borrow_date?->toDateString()],
+                                ['Return date',   $loan->return_date?->toDateString()],
+                                ['Picked up at',  $loan->picked_up_at?->toDayDateTimeString()],
+                                ['Returned at',   $loan->returned_at?->toDayDateTimeString()],
+                            ];
+                        @endphp
+                        @foreach ($cells as [$label, $value])
+                            @if ($value)
+                                <div class="col-6 col-md-3">
+                                    <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-bottom:3px;">{{ $label }}</div>
+                                    <div style="font-size:.82rem;color:#374151;font-weight:600;">{{ $value }}</div>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
 
-                        @if ($loan->picked_up_at)
-                            <dt class="col-sm-4 text-muted small">Picked up at</dt>
-                            <dd class="col-sm-8">{{ $loan->picked_up_at->toDayDateTimeString() }}</dd>
-                        @endif
+                    @if ($loan->notes)
+                        <div style="margin-top:14px;padding:12px 14px;background:#f8f9ff;border-radius:12px;border:1px solid #e8eaf0;">
+                            <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;">Notes</div>
+                            <div style="font-size:.83rem;color:#374151;">{{ $loan->notes }}</div>
+                        </div>
+                    @endif
 
-                        @if ($loan->returned_at)
-                            <dt class="col-sm-4 text-muted small">Returned at</dt>
-                            <dd class="col-sm-8">{{ $loan->returned_at->toDayDateTimeString() }}</dd>
-                        @endif
-
-                        <dt class="col-sm-4 text-muted small">Notes</dt>
-                        <dd class="col-sm-8">{{ $loan->notes ?: '—' }}</dd>
-
-                        @if ($loan->reject_reason)
-                            <dt class="col-sm-4 text-muted small">Rejection reason</dt>
-                            <dd class="col-sm-8 text-danger">{{ $loan->reject_reason }}</dd>
-                        @endif
-                    </dl>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3 border-0">
-                    <h2 class="h6 mb-0 fw-semibold">Status history</h2>
-                </div>
-                <div class="card-body p-0">
-                    @if ($loan->statusHistory->isEmpty())
-                        <p class="text-muted small p-4 mb-0">No status changes yet.</p>
-                    @else
-                        <ul class="list-group list-group-flush">
-                            @foreach ($loan->statusHistory->sortByDesc('created_at') as $entry)
-                                <li class="list-group-item">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <span class="badge text-bg-{{ $statusColors[$entry->from_status] ?? 'secondary' }} text-uppercase">{{ $entry->from_status }}</span>
-                                            <i class="bi bi-arrow-right mx-1 text-muted"></i>
-                                            <span class="badge text-bg-{{ $statusColors[$entry->to_status] ?? 'secondary' }} text-uppercase">{{ $entry->to_status }}</span>
-                                        </div>
-                                        <span class="text-muted small">{{ $entry->created_at?->diffForHumans() }}</span>
-                                    </div>
-                                    <div class="text-muted small mt-1">
-                                        by {{ $entry->actor?->name ?? 'system' }}
-                                        @if ($entry->note)
-                                            · {{ $entry->note }}
-                                        @endif
-                                    </div>
-                                </li>
-                            @endforeach
-                        </ul>
+                    @if ($loan->reject_reason)
+                        <div style="margin-top:14px;padding:12px 14px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;">
+                            <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;color:#dc2626;margin-bottom:4px;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Rejection reason</div>
+                            <div style="font-size:.83rem;color:#991b1b;">{{ $loan->reject_reason }}</div>
+                        </div>
                     @endif
                 </div>
             </div>
+
+            {{-- Status history --}}
+            <div class="lv-card">
+                <div class="lv-card-header">
+                    <span class="lv-card-title"><i class="bi bi-clock-history me-2 text-primary"></i>Status history</span>
+                </div>
+                @if ($loan->statusHistory->isEmpty())
+                    <div class="lv-empty" style="padding:28px 20px;">
+                        <i class="bi bi-hourglass" style="font-size:1.5rem;opacity:.35;display:block;margin-bottom:6px;"></i>
+                        <p>No status changes yet.</p>
+                    </div>
+                @else
+                    <div style="padding:8px 20px 12px;">
+                        @foreach ($loan->statusHistory->sortByDesc('created_at') as $entry)
+                            <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f0f2f8;">
+                                <div style="width:28px;height:28px;border-radius:50%;background:{{ $historyTone[$entry->to_status] ?? '#9ca3af' }}1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                                    <div style="width:8px;height:8px;border-radius:50%;background:{{ $historyTone[$entry->to_status] ?? '#9ca3af' }};"></div>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                        <span class="lv-pill {{ $toneMap[$entry->from_status] ?? 'lv-pill-rejected' }}">{{ ucfirst($entry->from_status) }}</span>
+                                        <i class="bi bi-arrow-right" style="color:#9ca3af;font-size:.7rem;"></i>
+                                        <span class="lv-pill {{ $toneMap[$entry->to_status] ?? 'lv-pill-rejected' }}">{{ ucfirst($entry->to_status) }}</span>
+                                    </div>
+                                    <div style="font-size:.72rem;color:#9ca3af;margin-top:3px;">
+                                        by {{ $entry->actor?->name ?? 'system' }}
+                                        @if ($entry->note) · {{ $entry->note }} @endif
+                                    </div>
+                                </div>
+                                <div style="font-size:.72rem;color:#9ca3af;white-space:nowrap;">
+                                    {{ $entry->created_at?->diffForHumans() }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         </div>
 
+        {{-- Right: KTM --}}
         <div class="col-12 col-lg-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-                    <h2 class="h6 mb-0 fw-semibold">KTM document</h2>
-                    <a href="{{ route('api.loans.document', ['id' => $loan->id]) }}"
+            <div class="lv-card">
+                <div class="lv-card-header">
+                    <span class="lv-card-title"><i class="bi bi-card-image me-2 text-primary"></i>KTM Document</span>
+                    <a href="{{ route('admin.loans.document', $loan) }}"
                        target="_blank"
-                       class="btn btn-sm btn-light">
-                        <i class="bi bi-download me-1"></i> Download
+                       class="btn btn-ghost btn-sm">
+                        <i class="bi bi-download me-1"></i>Download
                     </a>
                 </div>
-                <div class="card-body p-3 text-center">
+                <div style="padding:16px;text-align:center;">
                     @if ($isPdf)
-                        <div class="border rounded bg-light d-flex flex-column align-items-center justify-content-center"
-                             style="height:280px;">
-                            <i class="bi bi-file-earmark-pdf display-3 text-danger mb-2"></i>
-                            <p class="text-muted small mb-0">PDF document — click Download to view.</p>
+                        <div style="height:280px;background:#f8f9ff;border-radius:12px;border:1px solid #e8eaf0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                            <i class="bi bi-file-earmark-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:8px;"></i>
+                            <p style="font-size:.78rem;color:#9ca3af;margin:0 0 12px;">PDF document</p>
+                            <a href="{{ route('admin.loans.document', $loan) }}"
+                               target="_blank"
+                               class="btn btn-primary btn-sm">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Open PDF
+                            </a>
                         </div>
                     @else
-                        <img src="{{ route('api.loans.document', ['id' => $loan->id]) }}"
+                        <img src="{{ route('admin.loans.document', $loan) }}"
                              alt="KTM"
-                             class="img-fluid border rounded"
-                             style="max-height:320px;">
+                             style="max-width:100%;border-radius:12px;border:1px solid #e8eaf0;max-height:320px;">
                     @endif
                 </div>
             </div>
         </div>
     </div>
 
+    {{-- Reject modal (triggered via JS) --}}
     @if ($loan->status === 'pending')
-        <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <form method="POST" action="{{ route('admin.loans.reject', $loan) }}" class="modal-content">
+        <div id="lv-reject-overlay"
+             style="display:none;position:fixed;inset:0;background:rgba(15,22,35,.55);z-index:9999;align-items:center;justify-content:center;">
+            <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.2);margin:20px;">
+                <h3 style="font-size:1.05rem;font-weight:800;color:#111827;margin:0 0 6px;">Reject loan request</h3>
+                <p style="font-size:.82rem;color:#6b7280;margin:0 0 18px;">The reason will be visible to the student in their loan history.</p>
+                <form method="POST" action="{{ route('admin.loans.reject', $loan) }}" id="lv-reject-form">
                     @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-semibold">Reject loan request</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <label for="reject_reason" class="form-label small fw-medium">Reason</label>
-                        <textarea id="reject_reason"
-                                  name="reject_reason"
-                                  class="form-control @error('reject_reason') is-invalid @enderror"
-                                  rows="4"
-                                  required
-                                  minlength="3">{{ old('reject_reason') }}</textarea>
-                        @error('reject_reason')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <div class="form-text">Visible to the student in their loan history.</div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Reject loan</button>
+                    <textarea id="reject_reason" name="reject_reason"
+                              style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:.85rem;font-family:inherit;resize:vertical;min-height:90px;outline:none;transition:border-color .15s;"
+                              placeholder="Enter rejection reason…" required minlength="3">{{ old('reject_reason') }}</textarea>
+                    @error('reject_reason')
+                        <div style="font-size:.73rem;color:#ef4444;margin-top:4px;">{{ $message }}</div>
+                    @enderror
+                    <div style="display:flex;gap:10px;margin-top:16px;">
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="lvHideRejectModal()" style="flex:1;">Cancel</button>
+                        <button type="submit" class="btn btn-sm" style="flex:1;background:#ef4444;color:#fff;border:none;">
+                            <i class="bi bi-x-lg me-1"></i>Reject loan
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     @endif
 @endsection
+
+@push('scripts')
+<script>
+function lvShowRejectModal() {
+    document.getElementById('lv-reject-overlay').style.display = 'flex';
+}
+function lvHideRejectModal() {
+    document.getElementById('lv-reject-overlay').style.display = 'none';
+}
+document.getElementById('lv-reject-overlay')?.addEventListener('click', function(e) {
+    if (e.target === this) lvHideRejectModal();
+});
+</script>
+@endpush

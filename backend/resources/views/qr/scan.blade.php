@@ -3,15 +3,9 @@
 @section('title', 'QR Scan')
 
 @push('head')
-{{-- jsQR is a pure-JavaScript QR decoder. It runs in any browser that
-     supports <canvas> (so anything Chromium / Firefox / Safari less
-     than ~5 years old). We load it as a fallback for desktop Chrome
-     on Windows, where the BarcodeDetector API is still gated behind a
-     trial/flag and is `undefined` by default. ~40KB, MIT-licensed,
-     no build step, single global `window.jsQR`. --}}
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"></script>
+{{-- jsQR is a pure-JavaScript QR decoder. Served locally from public/vendor.
+     ~130KB, MIT-licensed, no build step, single global `window.jsQR`. --}}
+<script src="/vendor/jsqr/jsQR.min.js"></script>
 @endpush
 
 @section('content')

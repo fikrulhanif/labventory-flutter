@@ -98,7 +98,9 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-end gap-2 mt-4">
-    <a href="{{ route('admin.users.index') }}" class="btn btn-light">Cancel</a>
-    <button type="submit" class="btn btn-primary">{{ $submitLabel ?? 'Save' }}</button>
+<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #f0f2f8;">
+    <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Cancel</a>
+    <button type="submit" class="btn btn-primary btn-sm">
+        <i class="bi bi-check-lg me-1"></i>{{ $submitLabel ?? 'Save' }}
+    </button>
 </div>

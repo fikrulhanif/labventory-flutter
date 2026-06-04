@@ -63,6 +63,28 @@ class LoanController extends Controller
         ]);
     }
 
+    /**
+     * Stream the KTM document for admin/laboran viewing.
+     *
+     * This is a web-guarded (session auth) endpoint separate from the
+     * API endpoint at `GET /api/loans/{id}/document` (which uses
+     * Sanctum tokens and is intended for mobile students).
+     *
+     * Admin/laboran already have a valid session cookie so they can
+     * access this without any Bearer token. The file is streamed
+     * directly from the public disk.
+     */
+    public function document(Loan $loan): \Symfony\Component\HttpFoundation\Response
+    {
+        $path = $loan->document;
+
+        if (! $path || ! \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            abort(404, 'KTM document not found.');
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->response($path);
+    }
+
     public function approve(Request $request, Loan $loan): RedirectResponse
     {
         try {

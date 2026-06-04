@@ -60,6 +60,7 @@ Route::middleware(['auth', 'role:admin,laboran'])
         // Loan workflow (Requirements 9.1 — 9.5, 10.1 — 10.8)
         Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
         Route::get('loans/{loan}', [LoanController::class, 'show'])->name('loans.show');
+        Route::get('loans/{loan}/ktm', [LoanController::class, 'document'])->name('loans.document');
         Route::post('loans/{loan}/approve', [LoanController::class, 'approve'])->name('loans.approve');
         Route::post('loans/{loan}/reject', [LoanController::class, 'reject'])->name('loans.reject');
         Route::post('loans/{loan}/pickup', [LoanController::class, 'pickup'])->name('loans.pickup');

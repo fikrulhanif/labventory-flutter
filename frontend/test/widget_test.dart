@@ -41,7 +41,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Labventory'), findsOneWidget);
-    expect(find.text('Campus laboratory inventory borrowing'), findsOneWidget);
+    expect(find.text('Campus laboratory inventory'), findsOneWidget);
 
     // Drain any pending timers/microtasks so the test exits cleanly
     // (the splash screen's post-bootstrap navigation finishes here).

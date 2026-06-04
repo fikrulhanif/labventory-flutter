@@ -53,6 +53,25 @@ class _HomeScreenState extends State<HomeScreen> {
     AppShell.of(context)?.setIndex(tabIndex);
   }
 
+  List<Widget> _buildDueSoonBanner(List<Loan> loans, ThemeData theme) {
+    final now = DateTime.now();
+    final dueSoon = loans.where((l) {
+      if (l.status != LoanStatus.borrowed) return false;
+      if (l.returnDate == null) return false;
+      final diff = l.returnDate!.difference(now).inDays;
+      return diff >= 0 && diff <= 3;
+    }).toList();
+
+    if (dueSoon.isEmpty) return [];
+
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        child: _DueSoonBanner(loans: dueSoon, onTap: () => _switchTab(2)),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -118,6 +137,16 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Quick action pills
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                    child: _QuickActions(onSwitchTab: _switchTab),
+                  ),
+
+                  // "Due soon" alert banner — only shown when user has
+                  // borrowed items with return date within 3 days.
+                  ..._buildDueSoonBanner(loans.items, theme),
+
                   _SectionHeader(
                     title: 'Browse by category',
                     trailingLabel: 'See all',
@@ -988,5 +1017,192 @@ class _LoanRow extends StatelessWidget {
     return loan.createdAt == null
         ? '—'
         : DateFormat('d MMM, HH:mm').format(loan.createdAt!.toLocal());
+  }
+}
+
+// ---------------------------------------------------------------------
+// Quick actions row
+// ---------------------------------------------------------------------
+
+class _QuickActions extends StatelessWidget {
+  const _QuickActions({required this.onSwitchTab});
+  final void Function(int) onSwitchTab;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      (
+        icon: Icons.inventory_2_outlined,
+        label: 'Browse',
+        color: AppColors.primary,
+        tab: 1,
+      ),
+      (
+        icon: Icons.add_circle_outline,
+        label: 'Borrow',
+        color: AppColors.accent,
+        tab: 1,
+      ),
+      (
+        icon: Icons.assignment_outlined,
+        label: 'My loans',
+        color: AppColors.statusBorrowed,
+        tab: 2,
+      ),
+      (
+        icon: Icons.person_outline,
+        label: 'Profile',
+        color: AppColors.statusReturned,
+        tab: 3,
+      ),
+    ];
+    return Row(
+      children: items
+          .map(
+            (item) => Expanded(
+              child: _QuickActionTile(
+                icon: item.icon,
+                label: item.label,
+                color: item.color,
+                onTap: () => onSwitchTab(item.tab),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _QuickActionTile extends StatelessWidget {
+  const _QuickActionTile({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.colorScheme.outline, width: 0.6),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------
+// Due soon warning banner
+// ---------------------------------------------------------------------
+
+class _DueSoonBanner extends StatelessWidget {
+  const _DueSoonBanner({required this.loans, required this.onTap});
+  final List<Loan> loans;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final first = loans.first;
+    final now = DateTime.now();
+    final daysLeft = first.returnDate?.difference(now).inDays ?? 0;
+    final urgent = daysLeft <= 0;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: urgent
+              ? AppColors.danger.withValues(alpha: 0.10)
+              : AppColors.statusPending.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: urgent
+                ? AppColors.danger.withValues(alpha: 0.35)
+                : AppColors.statusPending.withValues(alpha: 0.35),
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              urgent ? Icons.warning_amber_rounded : Icons.access_time_rounded,
+              color: urgent ? AppColors.danger : AppColors.statusPending,
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    urgent
+                        ? 'Return due TODAY'
+                        : 'Return due in $daysLeft day${daysLeft == 1 ? '' : 's'}',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: urgent
+                          ? AppColors.danger
+                          : AppColors.statusPending,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    first.inventory?.name ?? 'Loan #${first.id}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  if (loans.length > 1)
+                    Text(
+                      'and ${loans.length - 1} more',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: theme.colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

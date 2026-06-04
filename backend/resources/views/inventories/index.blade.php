@@ -2,149 +2,134 @@
 
 @section('title', 'Inventories')
 
-@php
-    $statusLabels = [
-        'available' => ['label' => 'Available', 'tone' => 'success'],
-        'out_of_stock' => ['label' => 'Out of stock', 'tone' => 'secondary'],
-    ];
-@endphp
-
 @section('content')
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+    <div class="lv-page-header">
         <div>
-            <h1 class="h4 mb-1 fw-semibold">Inventories</h1>
-            <p class="text-muted small mb-0">Catalog of equipment available for borrowing.</p>
+            <h1>Inventories</h1>
+            <p>Equipment catalog available for borrowing.</p>
         </div>
-        <a href="{{ route('admin.inventories.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> New inventory
+        <a href="{{ route('admin.inventories.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Add inventory
         </a>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3 border-0">
-            <form method="GET" class="row g-2 align-items-end">
-                <div class="col-12 col-md-5">
-                    <label for="search" class="form-label small fw-medium mb-1">Search</label>
-                    <input type="search"
-                           id="search"
-                           name="search"
-                           value="{{ $search }}"
-                           class="form-control"
-                           placeholder="Name or code…">
+    <div class="lv-card">
+        {{-- Filters --}}
+        <div class="lv-card-header" style="background:#f8f9ff;">
+            <form method="GET" class="lv-filters">
+                <div class="lv-filter-field">
+                    <label class="form-label" for="search">Search</label>
+                    <input type="search" id="search" name="search" value="{{ $search }}"
+                           class="form-control form-control-sm" placeholder="Name or code…">
                 </div>
-                <div class="col-6 col-md-3">
-                    <label for="category_id" class="form-label small fw-medium mb-1">Category</label>
-                    <select id="category_id" name="category_id" class="form-select">
+                <div class="lv-filter-field">
+                    <label class="form-label" for="category_id">Category</label>
+                    <select id="category_id" name="category_id" class="form-select form-select-sm">
                         <option value="">All categories</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ $category->id }}"
-                                @selected((string) $selectedCategory === (string) $category->id)>
-                                {{ $category->name }}
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat->id }}" @selected((string)$selectedCategory===(string)$cat->id)>
+                                {{ $cat->name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-6 col-md-2">
-                    <label for="status" class="form-label small fw-medium mb-1">Status</label>
-                    <select id="status" name="status" class="form-select">
+                <div class="lv-filter-field">
+                    <label class="form-label" for="status">Status</label>
+                    <select id="status" name="status" class="form-select form-select-sm">
                         <option value="">Any</option>
-                        <option value="available" @selected($selectedStatus === 'available')>Available</option>
-                        <option value="out_of_stock" @selected($selectedStatus === 'out_of_stock')>Out of stock</option>
+                        <option value="available" @selected($selectedStatus==='available')>Available</option>
+                        <option value="out_of_stock" @selected($selectedStatus==='out_of_stock')>Out of stock</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-2 d-flex gap-2">
-                    <button class="btn btn-light w-100" type="submit">Apply</button>
-                    @if ($search !== '' || $selectedCategory || $selectedStatus)
-                        <a href="{{ route('admin.inventories.index') }}" class="btn btn-link text-muted">Reset</a>
+                <div style="display:flex;gap:8px;align-items:flex-end;">
+                    <button class="btn btn-apply btn-sm" type="submit">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    @if ($search||$selectedCategory||$selectedStatus)
+                        <a href="{{ route('admin.inventories.index') }}" class="btn btn-ghost btn-sm">Reset</a>
                     @endif
                 </div>
             </form>
         </div>
 
-        <div class="card-body p-0">
-            @if ($inventories->isEmpty())
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-boxes display-6 d-block mb-2"></i>
-                    No inventory items match these filters.
-                </div>
-            @else
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+        @if ($inventories->isEmpty())
+            <div class="lv-empty">
+                <i class="bi bi-boxes"></i>
+                <p>No inventory items match these filters.</p>
+            </div>
+        @else
+            <div style="overflow-x:auto;">
+                <table class="lv-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Code</th>
+                            <th>Category</th>
+                            <th style="text-align:center;">Stock</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($inventories as $inv)
                             <tr>
-                                <th class="ps-4">Item</th>
-                                <th>Code</th>
-                                <th>Category</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th class="pe-4 text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($inventories as $inventory)
-                                @php
-                                    $status = $statusLabels[$inventory->status] ?? ['label' => $inventory->status, 'tone' => 'secondary'];
-                                @endphp
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-3">
-                                            @if ($inventory->image_url)
-                                                <img src="{{ $inventory->image_url }}"
-                                                     alt=""
-                                                     class="rounded border"
-                                                     style="width:40px;height:40px;object-fit:cover;">
-                                            @else
-                                                <div class="rounded border bg-light d-flex align-items-center justify-content-center"
-                                                     style="width:40px;height:40px;">
-                                                    <i class="bi bi-image text-muted"></i>
-                                                </div>
-                                            @endif
-                                            <div>
-                                                <div class="fw-medium">{{ $inventory->name }}</div>
-                                                <div class="text-muted small">
-                                                    {{ \Illuminate\Support\Str::limit($inventory->description, 60) }}
-                                                </div>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        @if ($inv->image_url)
+                                            <img src="{{ $inv->image_url }}" alt=""
+                                                 style="width:38px;height:38px;border-radius:10px;object-fit:cover;border:1px solid #e8eaf0;flex-shrink:0;">
+                                        @else
+                                            <div style="width:38px;height:38px;border-radius:10px;background:#f1f3f9;border:1px solid #e8eaf0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                                <i class="bi bi-image" style="color:#d1d5db;font-size:.9rem;"></i>
                                             </div>
+                                        @endif
+                                        <div>
+                                            <div style="font-weight:600;">{{ $inv->name }}</div>
+                                            <div style="font-size:.72rem;color:#9ca3af;">{{ \Illuminate\Support\Str::limit($inv->description, 55) }}</div>
                                         </div>
-                                    </td>
-                                    <td><code class="small">{{ $inventory->code }}</code></td>
-                                    <td>{{ $inventory->category?->name ?? '-' }}</td>
-                                    <td>{{ $inventory->stock }}</td>
-                                    <td>
-                                        <span class="badge text-bg-{{ $status['tone'] }} text-uppercase">
-                                            {{ $status['label'] }}
-                                        </span>
-                                    </td>
-                                    <td class="pe-4 text-end">
-                                        <a href="{{ route('admin.inventories.show', $inventory) }}"
-                                           class="btn btn-sm btn-light">
+                                    </div>
+                                </td>
+                                <td><code>{{ $inv->code }}</code></td>
+                                <td style="color:#6b7280;">{{ $inv->category?->name ?? '—' }}</td>
+                                <td style="text-align:center;">
+                                    <span style="font-weight:700;font-size:.9rem;">{{ $inv->stock }}</span>
+                                </td>
+                                <td>
+                                    @if ($inv->status === 'available')
+                                        <span class="lv-pill lv-pill-available">Available</span>
+                                    @else
+                                        <span class="lv-pill lv-pill-out">Out of stock</span>
+                                    @endif
+                                </td>
+                                <td style="text-align:right;">
+                                    <div class="lv-actions">
+                                        <a href="{{ route('admin.inventories.show', $inv) }}" class="btn btn-ghost btn-sm" title="View">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ route('admin.inventories.edit', $inventory) }}"
-                                           class="btn btn-sm btn-light">
+                                        <a href="{{ route('admin.inventories.edit', $inv) }}" class="btn btn-ghost btn-sm" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form method="POST"
-                                              action="{{ route('admin.inventories.destroy', $inventory) }}"
+                                        <form method="POST" action="{{ route('admin.inventories.destroy', $inv) }}"
                                               class="d-inline"
-                                              onsubmit="return confirm('Delete this inventory item? This cannot be undone.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                              data-confirm="Delete '{{ $inv->name }}'? This cannot be undone."
+                                              data-confirm-title="Delete inventory"
+                                              data-confirm-yes="Yes, delete"
+                                              data-confirm-tone="danger">                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-sm" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;" title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
 
         @if ($inventories->hasPages())
-            <div class="card-footer bg-white border-0">
+            <div style="padding:14px 20px;border-top:1px solid #f0f2f8;">
                 {{ $inventories->links() }}
             </div>
         @endif

@@ -4,8 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title') · Labventory Report</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    {{-- All assets served locally — no CDN dependency --}}
+    <link href="/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
             --lv-bg: #f5f6fa;

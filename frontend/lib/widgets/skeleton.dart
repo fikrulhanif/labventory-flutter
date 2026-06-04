@@ -72,14 +72,36 @@ class SkeletonList extends StatelessWidget {
     this.itemCount = 6,
     this.itemHeight = 92,
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    this.isGrid = false,
   });
 
   final int itemCount;
   final double itemHeight;
   final EdgeInsetsGeometry padding;
+  final bool isGrid;
 
   @override
   Widget build(BuildContext context) {
+    if (isGrid) {
+      return GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(12),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.78,
+        ),
+        itemCount: itemCount,
+        itemBuilder: (context, _) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      );
+    }
+
     return ListView.builder(
       physics: const NeverScrollableScrollPhysics(),
       padding: padding,

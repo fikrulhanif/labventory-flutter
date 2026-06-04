@@ -3,100 +3,98 @@
 @section('title', 'Dashboard')
 
 @php
-    $statusColors = [
-        'pending'  => 'warning',
-        'approved' => 'info',
-        'borrowed' => 'primary',
-        'returned' => 'success',
-        'rejected' => 'secondary',
+    $statCards = [
+        ['Inventories',       $stats['total_inventories'], 'bi-boxes',              'lv-stat-1'],
+        ['Students',          $stats['total_students'],    'bi-people-fill',        'lv-stat-2'],
+        ['Total loans',       $stats['total_loans'],       'bi-clipboard2-check',   'lv-stat-3'],
+        ['Available items',   $stats['available_count'],   'bi-check-circle-fill',  'lv-stat-4'],
+        ['Currently borrowed',$stats['borrowed_count'],    'bi-arrow-left-right',   'lv-stat-5'],
     ];
 @endphp
 
 @section('content')
-    <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="lv-page-header">
         <div>
-            <h1 class="h4 mb-1 fw-semibold">Dashboard</h1>
-            <p class="text-muted small mb-0">Lab inventory at a glance.</p>
+            <h1>Dashboard</h1>
+            <p>Lab inventory at a glance · {{ now()->format('l, d F Y') }}</p>
         </div>
+        <a href="{{ route('admin.loans.index') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-clipboard2-list me-1"></i> View all loans
+        </a>
     </div>
 
+    {{-- Stat cards --}}
     <div class="row g-3 mb-4">
-        @php
-            $cards = [
-                ['Inventories', $stats['total_inventories'], 'bi-boxes', 'primary'],
-                ['Students', $stats['total_students'], 'bi-people', 'info'],
-                ['Total loans', $stats['total_loans'], 'bi-clipboard-check', 'secondary'],
-                ['Available items', $stats['available_count'], 'bi-check-circle', 'success'],
-                ['Currently borrowed', $stats['borrowed_count'], 'bi-arrow-repeat', 'warning'],
-            ];
-        @endphp
-
-        @foreach ($cards as [$label, $value, $icon, $tone])
+        @foreach ($statCards as [$label, $value, $icon, $cls])
             <div class="col-12 col-sm-6 col-lg">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-{{ $tone }} bg-opacity-10 text-{{ $tone }} rounded-3 d-flex align-items-center justify-content-center"
-                                 style="width:44px;height:44px;">
-                                <i class="bi {{ $icon }} fs-5"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted text-uppercase small">{{ $label }}</div>
-                                <div class="h4 fw-semibold mb-0">{{ $value }}</div>
-                            </div>
-                        </div>
+                <div class="lv-stat {{ $cls }}">
+                    <div class="lv-stat-icon">
+                        <i class="bi {{ $icon }}"></i>
+                    </div>
+                    <div>
+                        <div class="lv-stat-label">{{ $label }}</div>
+                        <div class="lv-stat-value">{{ number_format($value) }}</div>
                     </div>
                 </div>
             </div>
         @endforeach
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3 border-0 d-flex align-items-center justify-content-between">
-            <h2 class="h6 mb-0 fw-semibold">Recent loans</h2>
-            <span class="text-muted small">Last 5 requests</span>
+    {{-- Recent loans table --}}
+    <div class="lv-card">
+        <div class="lv-card-header">
+            <span class="lv-card-title"><i class="bi bi-clock-history me-2 text-primary"></i>Recent loan requests</span>
+            <a href="{{ route('admin.loans.index') }}" class="btn btn-ghost btn-sm">
+                See all <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
-        <div class="card-body p-0">
-            @if ($recentLoans->isEmpty())
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-inbox display-6 d-block mb-2"></i>
-                    No loan requests yet.
-                </div>
-            @else
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+
+        @if ($recentLoans->isEmpty())
+            <div class="lv-empty">
+                <i class="bi bi-inbox"></i>
+                <p>No loan requests yet.</p>
+            </div>
+        @else
+            <div style="overflow-x:auto;">
+                <table class="lv-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>NIM</th>
+                            <th>Inventory</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Submitted</th>
+                            <th style="text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($recentLoans as $loan)
                             <tr>
-                                <th class="ps-4">Student</th>
-                                <th>NIM</th>
-                                <th>Inventory</th>
-                                <th>Status</th>
-                                <th class="pe-4 text-end">Submitted</th>
+                                <td style="font-weight:600;">{{ $loan->user?->name ?? '—' }}</td>
+                                <td><code>{{ $loan->user?->nim ?? '—' }}</code></td>
+                                <td>
+                                    <div style="font-weight:600;">{{ $loan->inventory?->name ?? '—' }}</div>
+                                    <div style="font-size:.72rem;color:#9ca3af;">{{ $loan->inventory?->code ?? '' }}</div>
+                                </td>
+                                <td>
+                                    <span class="lv-pill lv-pill-{{ $loan->status }}">
+                                        {{ ucfirst($loan->status) }}
+                                    </span>
+                                </td>
+                                <td style="text-align:right;color:#9ca3af;font-size:.78rem;">
+                                    {{ $loan->created_at?->diffForHumans() }}
+                                </td>
+                                <td style="text-align:right;">
+                                    <a href="{{ route('admin.loans.show', $loan) }}"
+                                       class="btn btn-ghost btn-sm">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($recentLoans as $loan)
-                                <tr>
-                                    <td class="ps-4">{{ $loan->user?->name ?? '-' }}</td>
-                                    <td><span class="text-muted small">{{ $loan->user?->nim ?? '-' }}</span></td>
-                                    <td>
-                                        <div class="fw-medium">{{ $loan->inventory?->name ?? '-' }}</div>
-                                        <div class="text-muted small">{{ $loan->inventory?->code ?? '' }}</div>
-                                    </td>
-                                    <td>
-                                        <span class="badge text-bg-{{ $statusColors[$loan->status] ?? 'secondary' }} text-uppercase">
-                                            {{ $loan->status }}
-                                        </span>
-                                    </td>
-                                    <td class="pe-4 text-end text-muted small">
-                                        {{ $loan->created_at?->diffForHumans() }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 @endsection

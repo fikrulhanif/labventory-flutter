@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/loan_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../routes/app_router.dart';
+import '../../models/loan.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key, this.embeddedInShell = false});
@@ -120,6 +121,10 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
+
+            const SizedBox(height: 16),
+            // Loan stats mini-row — quick-read lifetime summary
+            const _LoanStatsRow(),
 
             const SizedBox(height: 16),
             _SectionLabel(text: 'Account'),
@@ -261,6 +266,127 @@ class ProfileScreen extends StatelessWidget {
                 'KTM, and track the status until you return the item.',
               ),
             ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------
+// Loan stats mini row
+// ---------------------------------------------------------------------
+
+class _LoanStatsRow extends StatelessWidget {
+  const _LoanStatsRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final loans = context.watch<LoanProvider>().items;
+    final theme = Theme.of(context);
+
+    final total = loans.length;
+    final returned = loans.where((l) => l.status == LoanStatus.returned).length;
+    final active = loans
+        .where(
+          (l) =>
+              l.status == LoanStatus.pending ||
+              l.status == LoanStatus.approved ||
+              l.status == LoanStatus.borrowed,
+        )
+        .length;
+    final rate = total == 0 ? 0 : ((returned / total) * 100).round();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        child: Row(
+          children: [
+            _MiniStat(
+              value: total.toString(),
+              label: 'Total loans',
+              icon: Icons.history,
+              color: AppColors.primary,
+            ),
+            _MiniDivider(),
+            _MiniStat(
+              value: active.toString(),
+              label: 'Active',
+              icon: Icons.local_shipping_outlined,
+              color: AppColors.statusBorrowed,
+            ),
+            _MiniDivider(),
+            _MiniStat(
+              value: returned.toString(),
+              label: 'Returned',
+              icon: Icons.check_circle_outline,
+              color: AppColors.statusReturned,
+            ),
+            _MiniDivider(),
+            _MiniStat(
+              value: '$rate%',
+              label: 'Return rate',
+              icon: Icons.analytics_outlined,
+              color: AppColors.accent,
+            ),
+          ],
+        ),
+      ),
+    );
+    // ignore: dead_code
+    theme; // reserved
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  const _MiniStat({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+  final String value;
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 16),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
+          ),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(fontSize: 10),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 32,
+      color: Theme.of(context).colorScheme.outlineVariant,
     );
   }
 }

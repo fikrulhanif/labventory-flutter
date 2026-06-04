@@ -3,83 +3,91 @@
 @section('title', 'Categories')
 
 @section('content')
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+    <div class="lv-page-header">
         <div>
-            <h1 class="h4 mb-1 fw-semibold">Categories</h1>
-            <p class="text-muted small mb-0">Group inventory items by type.</p>
+            <h1>Categories</h1>
+            <p>Group inventory items by type.</p>
         </div>
-        <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> New category
+        <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Add category
         </a>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3 border-0">
-            <form method="GET" class="d-flex" role="search">
-                <input type="search"
-                       name="search"
-                       value="{{ $search }}"
-                       class="form-control"
-                       placeholder="Search by name…">
-                @if ($search !== '')
-                    <a href="{{ route('admin.categories.index') }}" class="btn btn-light ms-2">Clear</a>
-                @endif
+    <div class="lv-card">
+        <div class="lv-card-header" style="background:#f8f9ff;">
+            <form method="GET" class="lv-filters">
+                <div class="lv-filter-field" style="flex:1;">
+                    <label class="form-label" for="search">Search</label>
+                    <input type="search" id="search" name="search" value="{{ $search }}"
+                           class="form-control form-control-sm" placeholder="Category name…">
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-end;">
+                    <button class="btn btn-apply btn-sm" type="submit">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                    @if ($search !== '')
+                        <a href="{{ route('admin.categories.index') }}" class="btn btn-ghost btn-sm">Clear</a>
+                    @endif
+                </div>
             </form>
         </div>
 
-        <div class="card-body p-0">
-            @if ($categories->isEmpty())
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-tags display-6 d-block mb-2"></i>
-                    No categories yet.
-                </div>
-            @else
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+        @if ($categories->isEmpty())
+            <div class="lv-empty">
+                <i class="bi bi-tags"></i>
+                <p>No categories yet. Create the first one.</p>
+            </div>
+        @else
+            <div style="overflow-x:auto;">
+                <table class="lv-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th style="text-align:center;">Inventories</th>
+                            <th>Created</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($categories as $category)
                             <tr>
-                                <th class="ps-4">Name</th>
-                                <th>Inventories</th>
-                                <th>Created</th>
-                                <th class="pe-4 text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($categories as $category)
-                                <tr>
-                                    <td class="ps-4 fw-medium">{{ $category->name }}</td>
-                                    <td>
-                                        <span class="badge text-bg-light border">
-                                            {{ $category->inventories_count }}
-                                        </span>
-                                    </td>
-                                    <td class="text-muted small">{{ $category->created_at?->toDateString() }}</td>
-                                    <td class="pe-4 text-end">
+                                <td style="font-weight:600;">{{ $category->name }}</td>
+                                <td style="text-align:center;">
+                                    <span style="font-weight:700;font-size:.88rem;color:{{ $category->inventories_count > 0 ? '#6366f1' : '#9ca3af' }}">
+                                        {{ $category->inventories_count }}
+                                    </span>
+                                </td>
+                                <td style="font-size:.78rem;color:#9ca3af;">
+                                    {{ $category->created_at?->format('d M Y') }}
+                                </td>
+                                <td style="text-align:right;">
+                                    <div class="lv-actions">
                                         <a href="{{ route('admin.categories.edit', $category) }}"
-                                           class="btn btn-sm btn-light">
+                                           class="btn btn-ghost btn-sm" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form method="POST"
-                                              action="{{ route('admin.categories.destroy', $category) }}"
+                                        <form method="POST" action="{{ route('admin.categories.destroy', $category) }}"
                                               class="d-inline"
-                                              onsubmit="return confirm('Delete this category? This cannot be undone.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                              data-confirm="Delete '{{ $category->name }}'? This cannot be undone."
+                                              data-confirm-title="Delete category"
+                                              data-confirm-yes="Yes, delete"
+                                              data-confirm-tone="danger">                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-sm"
+                                                    style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
 
         @if ($categories->hasPages())
-            <div class="card-footer bg-white border-0">
+            <div style="padding:14px 20px;border-top:1px solid #f0f2f8;">
                 {{ $categories->links() }}
             </div>
         @endif
