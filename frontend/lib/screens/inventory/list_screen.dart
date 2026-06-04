@@ -7,9 +7,14 @@ import '../../routes/app_router.dart';
 import '../../widgets/app_search_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/inventory_card.dart';
+import '../../widgets/skeleton.dart';
 
 class InventoryListScreen extends StatefulWidget {
-  const InventoryListScreen({super.key});
+  const InventoryListScreen({super.key, this.embeddedInShell = false});
+
+  /// When true, the screen renders without its own back button — it's
+  /// mounted inside [AppShell] and uses the bottom NavigationBar.
+  final bool embeddedInShell;
 
   @override
   State<InventoryListScreen> createState() => _InventoryListScreenState();
@@ -50,7 +55,10 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
     final provider = context.watch<InventoryProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Inventory')),
+      appBar: AppBar(
+        title: const Text('Inventory'),
+        automaticallyImplyLeading: !widget.embeddedInShell,
+      ),
       body: Column(
         children: [
           Padding(
@@ -154,7 +162,7 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (provider.state == InventoryListState.loading) {
-      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+      return const SkeletonList();
     }
 
     if (provider.state == InventoryListState.error && provider.items.isEmpty) {
@@ -198,9 +206,27 @@ class _Body extends StatelessWidget {
             );
           }
           final inventory = provider.items[index];
-          return InventoryCard(
+          // Subtle staggered fade-up so the list feels alive instead
+          // of popping in flat. Capped after the first 8 items so we
+          // don't animate the entire long list when paginating.
+          final card = InventoryCard(
             inventory: inventory,
             onTap: () => _openDetail(context, inventory),
+          );
+          if (index >= 8) return card;
+          return TweenAnimationBuilder<double>(
+            key: ValueKey('inv-${inventory.id}'),
+            tween: Tween(begin: 0, end: 1),
+            duration: Duration(milliseconds: 280 + index * 40),
+            curve: Curves.easeOutCubic,
+            builder: (context, t, child) => Opacity(
+              opacity: t,
+              child: Transform.translate(
+                offset: Offset(0, (1 - t) * 12),
+                child: child,
+              ),
+            ),
+            child: card,
           );
         },
       ),

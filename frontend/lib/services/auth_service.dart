@@ -28,8 +28,11 @@ class AuthService {
 
   /// `POST /auth/register` (Requirement 1.7).
   ///
-  /// On 201 the Sanctum token is persisted via [TokenStorage] so the
-  /// next call goes out authenticated automatically.
+  /// IMPORTANT — registration intentionally does NOT persist the
+  /// returned Sanctum token. We require students to sign in explicitly
+  /// after creating an account, so the app cannot be used without
+  /// proving credentials at least once. The backend keeps issuing a
+  /// token for backwards compatibility, but Flutter discards it.
   Future<ApiResponse<AuthSession>> register({
     required String name,
     required String nim,
@@ -48,7 +51,7 @@ class AuthService {
       },
     );
 
-    return _handleAuthResponse(response);
+    return _handleAuthResponse(response, persistToken: false);
   }
 
   /// `POST /auth/login` (Requirement 2.1).
@@ -61,7 +64,7 @@ class AuthService {
       data: {'nim': nim, 'password': password},
     );
 
-    return _handleAuthResponse(response);
+    return _handleAuthResponse(response, persistToken: true);
   }
 
   /// `POST /auth/logout` (Requirement 3.4). Always clears the locally
@@ -130,8 +133,9 @@ class AuthService {
   // ---- internal helpers ----
 
   Future<ApiResponse<AuthSession>> _handleAuthResponse(
-    Response<dynamic> response,
-  ) async {
+    Response<dynamic> response, {
+    required bool persistToken,
+  }) async {
     final result = ApiResponse<AuthSession>.fromEnvelope(
       _envelopeFrom(response),
       decoder: (data) {
@@ -144,7 +148,7 @@ class AuthService {
       statusCode: response.statusCode,
     );
 
-    if (result.success && result.data != null) {
+    if (result.success && result.data != null && persistToken) {
       await TokenStorage.saveToken(result.data!.token);
     }
 

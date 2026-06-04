@@ -93,7 +93,16 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         passwordConfirmation: passwordConfirmation,
       );
-      return _applyAuthResponse(response);
+
+      if (response.success && response.data != null) {
+        // Registration creates the account but does NOT log the user in
+        // automatically. The screen pushes them to /login afterwards so
+        // they have to enter their NIM + password explicitly.
+        return true;
+      }
+
+      _captureErrors(response);
+      return false;
     });
   }
 

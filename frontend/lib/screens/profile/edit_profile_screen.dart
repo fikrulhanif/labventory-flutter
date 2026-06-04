@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
 
@@ -72,7 +73,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final theme = Theme.of(context);
     final fieldErrors = auth.validationErrors;
+    final user = auth.user;
+    final trimmedName = (user?.name ?? '').trim();
+    final initial = trimmedName.isEmpty
+        ? '?'
+        : trimmedName.characters.first.toUpperCase();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Edit profile')),
@@ -80,89 +87,278 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Full name',
-                  prefixIcon: const Icon(Icons.person_outline),
-                  errorText: fieldErrors['name']?.first,
-                ),
-                validator: (v) => Validators.required(v, label: 'Name'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: const Icon(Icons.alternate_email),
-                  errorText: fieldErrors['email']?.first,
-                ),
-                validator: Validators.email,
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Change password'),
-                value: _changingPassword,
-                onChanged: (v) => setState(() => _changingPassword = v),
-              ),
-              if (_changingPassword) ...[
-                TextFormField(
-                  controller: _currentPasswordController,
-                  obscureText: !_showPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Current password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    errorText: fieldErrors['current_password']?.first,
+              // Hero card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    colors: [AppColors.gradientStart, AppColors.gradientEnd],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  validator: (v) =>
-                      Validators.required(v, label: 'Current password'),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _newPasswordController,
-                  obscureText: !_showPassword,
-                  decoration: InputDecoration(
-                    labelText: 'New password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _showPassword ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () =>
-                          setState(() => _showPassword = !_showPassword),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gradientStart.withValues(alpha: 0.30),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
                     ),
-                    errorText: fieldErrors['password']?.first,
-                  ),
-                  validator: Validators.password,
+                  ],
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _newPasswordConfirmController,
-                  obscureText: !_showPassword,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm new password',
-                    prefixIcon: Icon(Icons.lock_outline),
-                  ),
-                  validator: Validators.confirmPassword(
-                    () => _newPasswordController.text,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.30),
+                          width: 1.5,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        initial,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Update your account',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Name, email, and password.',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+              _SectionLabel(text: 'Personal'),
+              const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: 'Full name',
+                          prefixIcon: const Icon(Icons.person_outline),
+                          errorText: fieldErrors['name']?.first,
+                        ),
+                        validator: (v) => Validators.required(v, label: 'Name'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: const Icon(Icons.alternate_email),
+                          errorText: fieldErrors['email']?.first,
+                        ),
+                        validator: Validators.email,
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
+
+              const SizedBox(height: 18),
+              _SectionLabel(text: 'Security'),
+              const SizedBox(height: 8),
+              Card(
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      title: Text(
+                        'Change password',
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      subtitle: Text(
+                        _changingPassword
+                            ? 'Enter your current and new password below.'
+                            : 'Toggle to update your password.',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      value: _changingPassword,
+                      onChanged: (v) => setState(() => _changingPassword = v),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    if (_changingPassword)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _currentPasswordController,
+                              obscureText: !_showPassword,
+                              decoration: InputDecoration(
+                                labelText: 'Current password',
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                errorText:
+                                    fieldErrors['current_password']?.first,
+                              ),
+                              validator: (v) => Validators.required(
+                                v,
+                                label: 'Current password',
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _newPasswordController,
+                              obscureText: !_showPassword,
+                              decoration: InputDecoration(
+                                labelText: 'New password',
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _showPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _showPassword = !_showPassword,
+                                  ),
+                                ),
+                                errorText: fieldErrors['password']?.first,
+                              ),
+                              validator: Validators.password,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _newPasswordConfirmController,
+                              obscureText: !_showPassword,
+                              decoration: const InputDecoration(
+                                labelText: 'Confirm new password',
+                                prefixIcon: Icon(Icons.lock_outline),
+                              ),
+                              validator: Validators.confirmPassword(
+                                () => _newPasswordController.text,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 24),
-              FilledButton(
-                onPressed: auth.isLoading ? null : _save,
-                child: auth.isLoading
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Save changes'),
+              _GradientButton(
+                isLoading: auth.isLoading,
+                label: 'Save changes',
+                onPressed: _save,
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 0, 0),
+      child: Text(
+        text.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          letterSpacing: 1.2,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _GradientButton extends StatelessWidget {
+  const _GradientButton({
+    required this.isLoading,
+    required this.label,
+    required this.onPressed,
+  });
+  final bool isLoading;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: const LinearGradient(
+          colors: [AppColors.gradientStart, AppColors.gradientEnd],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gradientStart.withValues(alpha: 0.30),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: isLoading ? null : onPressed,
+          child: SizedBox(
+            height: 52,
+            child: Center(
+              child: isLoading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
           ),
         ),
       ),

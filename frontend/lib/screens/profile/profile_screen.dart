@@ -1,83 +1,199 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/loan_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../routes/app_router.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.embeddedInShell = false});
+
+  final bool embeddedInShell;
+
+  /// Safe extractor for the avatar initial that never trips on a null
+  /// or empty user name. Called every build so it must not throw on
+  /// the brief window between logout and route replacement when
+  /// `auth.user` is already null but the home/profile screens are
+  /// still rebuilding.
+  static String _firstChar(String? name) {
+    final trimmed = (name ?? '').trim();
+    if (trimmed.isEmpty) return '?';
+    return trimmed.characters.first.toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final theme = Theme.of(context);
     final user = auth.user;
+    final initial = _firstChar(user?.name);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        automaticallyImplyLeading: !embeddedInShell,
+      ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user?.name ?? '—',
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    if (user?.nim != null)
-                      Text(
-                        'NIM ${user!.nim!}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    const SizedBox(height: 2),
-                    Text(
-                      user?.email ?? '',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+            // Hero card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [AppColors.gradientStart, AppColors.gradientEnd],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.gradientStart.withValues(alpha: 0.30),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.35),
+                        width: 1.5,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.name ?? '—',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        if (user?.nim != null)
+                          Text(
+                            'NIM ${user!.nim!}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                            ),
+                          ),
+                        const SizedBox(height: 1),
+                        Text(
+                          user?.email ?? '',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
+
             const SizedBox(height: 16),
+            _SectionLabel(text: 'Account'),
+            const SizedBox(height: 8),
             Card(
               child: Column(
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.edit_outlined),
-                    title: const Text('Edit profile'),
-                    trailing: const Icon(Icons.chevron_right),
+                  _SettingTile(
+                    icon: Icons.edit_outlined,
+                    iconColor: AppColors.primary,
+                    title: 'Edit profile',
+                    subtitle: 'Name, email, password',
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRouter.profileEdit),
                   ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.assignment_outlined),
-                    title: const Text('My loans'),
-                    trailing: const Icon(Icons.chevron_right),
+                  _SettingDivider(),
+                  _SettingTile(
+                    icon: Icons.assignment_outlined,
+                    iconColor: AppColors.statusBorrowed,
+                    title: 'My loans',
+                    subtitle: 'Borrow history & status',
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRouter.loanHistory),
                   ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: Icon(Icons.logout, color: theme.colorScheme.error),
-                    title: Text(
-                      'Sign out',
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                    onTap: () => _confirmLogout(context),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+            _SectionLabel(text: 'Preferences'),
+            const SizedBox(height: 8),
+            const _ThemeCard(),
+
+            const SizedBox(height: 16),
+            _SectionLabel(text: 'Other'),
+            const SizedBox(height: 8),
+            Card(
+              child: Column(
+                children: [
+                  _SettingTile(
+                    icon: Icons.help_outline,
+                    iconColor: AppColors.info,
+                    title: 'Help & support',
+                    subtitle: 'How borrowing works',
+                    onTap: () => _showAbout(context),
+                  ),
+                  _SettingDivider(),
+                  _SettingTile(
+                    icon: Icons.info_outline,
+                    iconColor: AppColors.statusReturned,
+                    title: 'About Labventory',
+                    subtitle: 'Version & credits',
+                    onTap: () => _showAbout(context, about: true),
                   ),
                 ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+                foregroundColor: theme.colorScheme.onError,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              onPressed: () => _confirmLogout(context),
+              icon: const Icon(Icons.logout),
+              label: const Text('Sign out'),
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: Text(
+                'Labventory · Campus Lab Inventory',
+                style: theme.textTheme.bodySmall,
               ),
             ),
           ],
@@ -87,6 +203,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
+    final theme = Theme.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dctx) => AlertDialog(
@@ -98,6 +215,10 @@ class ProfileScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: theme.colorScheme.error,
+              foregroundColor: theme.colorScheme.onError,
+            ),
             onPressed: () => Navigator.of(dctx).pop(true),
             child: const Text('Sign out'),
           ),
@@ -109,11 +230,196 @@ class ProfileScreen extends StatelessWidget {
 
     final auth = context.read<AuthProvider>();
     final loans = context.read<LoanProvider>();
-    await auth.logout();
-    loans.clearAll();
-    if (!context.mounted) return;
+
+    // Navigate FIRST so the home/profile/loan widget tree is torn
+    // down before AuthProvider flips `user` to null. Otherwise the
+    // still-mounted screens rebuild against null and trip null-check
+    // ops + multiple-Hero-tag errors during the transition.
     Navigator.of(
       context,
     ).pushNamedAndRemoveUntil(AppRouter.login, (_) => false);
+
+    // Now safely tear the session down. We don't await this on the
+    // navigation thread; the user is already on /login.
+    await auth.logout();
+    loans.clearAll();
+  }
+
+  void _showAbout(BuildContext context, {bool about = false}) {
+    showAboutDialog(
+      context: context,
+      applicationName: 'Labventory',
+      applicationVersion: about ? '1.0.0' : null,
+      applicationLegalese:
+          '© Labventory · Campus laboratory inventory borrowing',
+      children: about
+          ? null
+          : [
+              const SizedBox(height: 8),
+              const Text(
+                'Browse lab inventory, submit a borrow request with your '
+                'KTM, and track the status until you return the item.',
+              ),
+            ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------
+// Section pieces
+// ---------------------------------------------------------------------
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 0, 0),
+      child: Text(
+        text.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          letterSpacing: 1.2,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingTile extends StatelessWidget {
+  const _SettingTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.titleSmall),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle!, style: theme.textTheme.bodySmall),
+                  ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 1,
+      indent: 14,
+      endIndent: 14,
+      color: Theme.of(context).colorScheme.outlineVariant,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------
+// Theme switcher card
+// ---------------------------------------------------------------------
+
+class _ThemeCard extends StatelessWidget {
+  const _ThemeCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final mode = context.watch<ThemeProvider>();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.accent.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(mode.icon, color: AppColors.accent, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Appearance', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 2),
+                  Text(mode.label, style: theme.textTheme.bodySmall),
+                ],
+              ),
+            ),
+            SegmentedButton<ThemeMode>(
+              showSelectedIcon: false,
+              style: SegmentedButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              segments: const [
+                ButtonSegment(
+                  value: ThemeMode.light,
+                  icon: Icon(Icons.light_mode_outlined, size: 18),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.system,
+                  icon: Icon(Icons.brightness_auto, size: 18),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.dark,
+                  icon: Icon(Icons.dark_mode_outlined, size: 18),
+                ),
+              ],
+              selected: {mode.mode},
+              onSelectionChanged: (s) => mode.setMode(s.first),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
