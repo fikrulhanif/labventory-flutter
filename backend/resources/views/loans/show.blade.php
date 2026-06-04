@@ -96,8 +96,9 @@
 
             {{-- Student + inventory card --}}
             <div class="lv-card" style="margin-bottom:16px;">
-                <div class="lv-card-header">
-                    <span class="lv-card-title"><i class="bi bi-info-circle me-2 text-primary"></i>Request details</span>
+                <div class="lv-card-header" style="background:linear-gradient(135deg,#1e2334,#2d3748);">
+                    <span class="lv-card-title" style="color:#e5e7eb;"><i class="bi bi-info-circle me-2"></i>Request details</span>
+                    <span class="lv-pill lv-pill-{{ $loan->status }}">{{ ucfirst($loan->status) }}</span>
                 </div>
                 <div style="padding:20px;">
                     <div class="row g-4">
@@ -173,8 +174,8 @@
 
             {{-- Status history --}}
             <div class="lv-card">
-                <div class="lv-card-header">
-                    <span class="lv-card-title"><i class="bi bi-clock-history me-2 text-primary"></i>Status history</span>
+                <div class="lv-card-header" style="background:linear-gradient(135deg,#1e2334,#2d3748);">
+                    <span class="lv-card-title" style="color:#e5e7eb;"><i class="bi bi-clock-history me-2"></i>Status history</span>
                 </div>
                 @if ($loan->statusHistory->isEmpty())
                     <div class="lv-empty" style="padding:28px 20px;">
@@ -212,17 +213,18 @@
         {{-- Right: KTM --}}
         <div class="col-12 col-lg-4">
             <div class="lv-card">
-                <div class="lv-card-header">
-                    <span class="lv-card-title"><i class="bi bi-card-image me-2 text-primary"></i>KTM Document</span>
+                <div class="lv-card-header" style="background:linear-gradient(135deg,#1e1b4b,#312e81);">
+                    <span class="lv-card-title" style="color:#e0e7ff;"><i class="bi bi-card-image me-2"></i>KTM Document</span>
                     <a href="{{ route('admin.loans.document', $loan) }}"
                        target="_blank"
-                       class="btn btn-ghost btn-sm">
+                       class="btn btn-sm"
+                       style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;">
                         <i class="bi bi-download me-1"></i>Download
                     </a>
                 </div>
-                <div style="padding:16px;text-align:center;">
+                <div style="padding:16px;text-align:center;background:#fafbff;">
                     @if ($isPdf)
-                        <div style="height:280px;background:#f8f9ff;border-radius:12px;border:1px solid #e8eaf0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                        <div style="height:280px;background:#f0f0ff;border-radius:12px;border:1.5px solid #c8cedd;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                             <i class="bi bi-file-earmark-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:8px;"></i>
                             <p style="font-size:.78rem;color:#9ca3af;margin:0 0 12px;">PDF document</p>
                             <a href="{{ route('admin.loans.document', $loan) }}"
@@ -232,9 +234,14 @@
                             </a>
                         </div>
                     @else
-                        <img src="{{ route('admin.loans.document', $loan) }}"
-                             alt="KTM"
-                             style="max-width:100%;border-radius:12px;border:1px solid #e8eaf0;max-height:320px;">
+                        <a href="{{ route('admin.loans.document', $loan) }}" target="_blank">
+                            <img src="{{ route('admin.loans.document', $loan) }}"
+                                 alt="KTM"
+                                 style="max-width:100%;border-radius:12px;border:1.5px solid #c8cedd;max-height:340px;cursor:zoom-in;transition:transform .2s;"
+                                 onmouseover="this.style.transform='scale(1.02)'"
+                                 onmouseout="this.style.transform='scale(1)'">
+                        </a>
+                        <p style="font-size:.70rem;color:#9ca3af;margin:8px 0 0;">Click to open full size</p>
                     @endif
                 </div>
             </div>

@@ -14,7 +14,7 @@
     </div>
 
     <div class="lv-card">
-        <div class="lv-card-header" style="background:#f8f9ff;">
+        <div class="lv-card-header" style="background:#f0f3ff;">
             <form method="GET" class="lv-filters">
                 <div class="lv-filter-field" style="flex:1;">
                     <label class="form-label" for="search">Search</label>

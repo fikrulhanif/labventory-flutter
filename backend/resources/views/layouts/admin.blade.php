@@ -25,9 +25,10 @@
             --lv-sidebar-section: rgba(255,255,255,0.30);
 
             /* Page */
-            --lv-bg: #f4f6fb;
+            --lv-bg: #e8ecf5;
             --lv-surface: #ffffff;
-            --lv-border: #e8eaf0;
+            --lv-border: #d4d8e8;
+            --lv-surface-alt: #f5f7ff;  /* slightly off-white for zebra/header */
 
             /* Brand */
             --lv-primary: #6366f1;
@@ -184,12 +185,13 @@
             z-index: 900;
             height: var(--lv-topbar-h);
             background: var(--lv-surface);
-            border-bottom: 1px solid var(--lv-border);
+            border-bottom: 2px solid #c8cedd;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 24px;
             gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
         }
         .lv-page-title {
             font-size: .9rem;
@@ -327,18 +329,20 @@
         .lv-card {
             background: var(--lv-surface);
             border-radius: 16px;
-            border: 1px solid var(--lv-border);
+            border: 1.5px solid #c8cedd;
             overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 0.5px rgba(0,0,0,.04);
         }
         .lv-card-header {
             padding: 14px 20px;
-            border-bottom: 1px solid var(--lv-border);
+            border-bottom: 1.5px solid #d8dcea;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 10px;
-            background: var(--lv-surface);
+            /* Tinted header makes the card structure immediately obvious */
+            background: #f5f7ff;
         }
         .lv-card-title {
             font-size: .88rem;
@@ -352,26 +356,29 @@
             border-collapse: collapse;
         }
         .lv-table thead th {
-            background: #f8f9ff;
-            color: #6b7280;
+            /* Solid colored header — immediately visible as distinct from body */
+            background: #e8ecfa;
+            color: #3b4268;
             font-size: .68rem;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .07em;
-            padding: 10px 14px;
-            border-bottom: 2px solid var(--lv-border);
+            letter-spacing: .08em;
+            padding: 11px 14px;
+            border-bottom: 2px solid #c8cedd;
             white-space: nowrap;
         }
         .lv-table thead th:first-child { padding-left: 20px; }
         .lv-table thead th:last-child  { padding-right: 20px; }
         .lv-table tbody tr {
-            border-bottom: 1px solid #f0f2f8;
-            transition: background .12s;
+            border-bottom: 1px solid #ebedf8;
+            transition: background .10s;
         }
+        /* Zebra striping — even rows get a very subtle tint */
+        .lv-table tbody tr:nth-child(even) { background: #f7f8ff; }
         .lv-table tbody tr:last-child { border-bottom: none; }
-        .lv-table tbody tr:hover { background: #f8f9ff; }
+        .lv-table tbody tr:hover { background: #eef1ff !important; }
         .lv-table tbody td {
-            padding: 12px 14px;
+            padding: 13px 14px;
             font-size: .83rem;
             color: #374151;
             vertical-align: middle;
@@ -427,15 +434,15 @@
         .lv-filter-field input,
         .lv-filter-field select { min-width: 160px; max-width: 240px; }
 
-        /* ── Status pills ─────────────────────────────────────────── */
+        /* ── Status pills — more vibrant for readability ─────────── */
         .lv-pill {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 3px 10px;
+            padding: 4px 11px;
             border-radius: 999px;
             font-size: .70rem;
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: .04em;
             text-transform: uppercase;
         }
@@ -444,17 +451,17 @@
             width: 5px; height: 5px;
             border-radius: 50%;
             background: currentColor;
-            opacity: .7;
         }
-        .lv-pill-pending  { background:#fff8e6; color:#d97706; border:1px solid #fde68a; }
-        .lv-pill-approved { background:#ecfeff; color:#0891b2; border:1px solid #a5f3fc; }
-        .lv-pill-borrowed { background:#ede9fe; color:#7c3aed; border:1px solid #c4b5fd; }
-        .lv-pill-returned { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
-        .lv-pill-rejected { background:#f3f4f6; color:#6b7280; border:1px solid #e5e7eb; }
-        .lv-pill-available{ background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
-        .lv-pill-out      { background:#f3f4f6; color:#6b7280; border:1px solid #e5e7eb; }
-        .lv-pill-active   { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
-        .lv-pill-inactive { background:#f3f4f6; color:#6b7280; border:1px solid #e5e7eb; }
+        /* Higher opacity backgrounds + darker text for contrast */
+        .lv-pill-pending  { background:#fef3c7; color:#b45309; border:1.5px solid #fcd34d; }
+        .lv-pill-approved { background:#cffafe; color:#0e7490; border:1.5px solid #67e8f9; }
+        .lv-pill-borrowed { background:#ede9fe; color:#6d28d9; border:1.5px solid #a78bfa; }
+        .lv-pill-returned { background:#d1fae5; color:#065f46; border:1.5px solid #6ee7b7; }
+        .lv-pill-rejected { background:#f3f4f6; color:#374151; border:1.5px solid #9ca3af; }
+        .lv-pill-available{ background:#d1fae5; color:#065f46; border:1.5px solid #6ee7b7; }
+        .lv-pill-out      { background:#fee2e2; color:#991b1b; border:1.5px solid #fca5a5; }
+        .lv-pill-active   { background:#dbeafe; color:#1d4ed8; border:1.5px solid #93c5fd; }
+        .lv-pill-inactive { background:#f3f4f6; color:#374151; border:1.5px solid #9ca3af; }
 
         /* ── Pagination ───────────────────────────────────────────── */
         .pagination {
