@@ -348,6 +348,6 @@ class InventoryManagementTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('admin.inventories.index', ['status' => 'available']))
             ->assertOk()
-            ->assertSeeText('Available');
+            ->assertSeeText('Tersedia');
     }
 }

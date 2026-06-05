@@ -50,27 +50,36 @@ final class AuthService
     }
 
     /**
-     * Authenticate a student with NIM + password.
+     * Authenticate a user by NIM OR email + password.
      *
-     * Throws InvalidCredentialsException (HTTP 401) for any unknown NIM or
-     * wrong password (Requirements 2.2, 2.3) and AccountDisabledException
-     * (HTTP 403) for inactive accounts (Requirement 2.4). Every failure
-     * appends a failed_logins audit row (Requirement 2.5).
+     * The single `$login` value is matched against `nim` first and `email`
+     * second (email comparison is case-insensitive), so the same endpoint
+     * serves student NIM logins and admin/laboran email logins
+     * (Requirements 19.1, 19.2, 19.6).
+     *
+     * Throws InvalidCredentialsException (HTTP 401) for any unknown
+     * NIM/email or wrong password (Requirements 19.3, 19.4) and
+     * AccountDisabledException (HTTP 403) for inactive accounts
+     * (Requirement 19.5). Every failure appends a failed_logins audit row
+     * with the submitted login value (Requirements 2.5, 19.7).
      *
      * @return array{user: User, token: string}
      */
-    public function login(string $nim, string $password, ?string $ip = null): array
+    public function login(string $login, string $password, ?string $ip = null): array
     {
         /** @var User|null $user */
-        $user = User::query()->where('nim', $nim)->first();
+        $user = User::query()
+            ->where('nim', $login)
+            ->orWhereRaw('LOWER(email) = ?', [mb_strtolower($login)])
+            ->first();
 
         if ($user === null || ! Hash::check($password, $user->password)) {
-            $this->logFailedLogin($nim, $ip);
+            $this->logFailedLogin($login, $ip);
             throw new InvalidCredentialsException();
         }
 
         if (! $user->isActive()) {
-            $this->logFailedLogin($nim, $ip);
+            $this->logFailedLogin($login, $ip);
             throw new AccountDisabledException();
         }
 
@@ -139,12 +148,13 @@ final class AuthService
     }
 
     /**
-     * Append a row to the failed_logins audit table (Requirement 2.5).
+     * Append a row to the failed_logins audit table (Requirements 2.5, 19.7).
+     * The `nim` column stores the submitted login value (NIM or email).
      */
-    private function logFailedLogin(string $nim, ?string $ip): void
+    private function logFailedLogin(string $login, ?string $ip): void
     {
         FailedLogin::create([
-            'nim' => $nim,
+            'nim' => $login,
             'ip' => $ip,
             'created_at' => now(),
         ]);

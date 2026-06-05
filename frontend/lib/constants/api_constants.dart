@@ -33,4 +33,19 @@ class ApiConstants {
 
   /// `GET /loans/{id}/document` — gated KTM stream (Requirement 18.6).
   static String loanDocument(int id) => '/loans/$id/document';
+
+  // ---- Admin mobile operations (RBAC) — Requirements 20-22 ----
+
+  /// `GET /admin/inventories/{code}` — resolve inventory by code.
+  static String adminInventoryLookup(String code) => '/admin/inventories/$code';
+
+  /// `GET /admin/inventories/{code}/loans` — active loans for an inventory.
+  static String adminInventoryLoans(String code) =>
+      '/admin/inventories/$code/loans';
+
+  /// `POST /admin/loans/{id}/handover` — approved -> borrowed.
+  static String adminLoanHandover(int id) => '/admin/loans/$id/handover';
+
+  /// `POST /admin/loans/{id}/return` — borrowed -> returned.
+  static String adminLoanReturn(int id) => '/admin/loans/$id/return';
 }

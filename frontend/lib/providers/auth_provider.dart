@@ -44,6 +44,10 @@ class AuthProvider extends ChangeNotifier {
 
   bool get isAuthenticated => _state == AuthState.authenticated;
 
+  /// True when the authenticated user is staff (admin/laboran) and should
+  /// see the admin operations experience (Requirements 19.8, 20-22).
+  bool get isStaff => _user?.isStaff ?? false;
+
   // -----------------------------------------------------------
   // Bootstrap (splash)
   // -----------------------------------------------------------
@@ -106,9 +110,9 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  Future<bool> login({required String nim, required String password}) async {
+  Future<bool> login({required String login, required String password}) async {
     return _runWithLoading(() async {
-      final response = await _service.login(nim: nim, password: password);
+      final response = await _service.login(login: login, password: password);
       return _applyAuthResponse(response);
     });
   }

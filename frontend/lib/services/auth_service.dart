@@ -54,14 +54,15 @@ class AuthService {
     return _handleAuthResponse(response, persistToken: false);
   }
 
-  /// `POST /auth/login` (Requirement 2.1).
+  /// `POST /auth/login` (Requirements 2.1, 19.1). The [login] value may be
+  /// a student NIM or an admin/laboran email; the backend resolves either.
   Future<ApiResponse<AuthSession>> login({
-    required String nim,
+    required String login,
     required String password,
   }) async {
     final response = await _dio.post<dynamic>(
       ApiConstants.authLogin,
-      data: {'nim': nim, 'password': password},
+      data: {'login': login, 'password': password},
     );
 
     return _handleAuthResponse(response, persistToken: true);

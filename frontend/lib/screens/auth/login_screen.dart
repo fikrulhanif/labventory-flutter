@@ -16,7 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final _nimController = TextEditingController();
+  final _loginController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _showPassword = false;
 
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
-    _nimController.dispose();
+    _loginController.dispose();
     _passwordController.dispose();
     _intro.dispose();
     super.dispose();
@@ -52,13 +52,16 @@ class _LoginScreenState extends State<LoginScreen>
 
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(
-      nim: _nimController.text.trim(),
+      login: _loginController.text.trim(),
       password: _passwordController.text,
     );
 
     if (!mounted) return;
     if (ok) {
-      Navigator.of(context).pushReplacementNamed(AppRouter.home);
+      // Route by role: staff (admin/laboran) go to the admin shell,
+      // students to the standard shell (Requirement 19.8).
+      final next = auth.isStaff ? AppRouter.adminHome : AppRouter.home;
+      Navigator.of(context).pushReplacementNamed(next);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.errorMessage ?? 'Gagal masuk.')),
@@ -191,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  'Masuk dengan NIM dan kata sandi Anda.',
+                                  'Masuk dengan NIM atau email dan kata sandi Anda.',
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
@@ -199,13 +202,15 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                                 const SizedBox(height: 24),
                                 TextFormField(
-                                  controller: _nimController,
+                                  controller: _loginController,
                                   textInputAction: TextInputAction.next,
                                   decoration: const InputDecoration(
-                                    labelText: 'NIM',
-                                    prefixIcon: Icon(Icons.badge_outlined),
+                                    labelText: 'NIM atau Email',
+                                    prefixIcon: Icon(
+                                      Icons.account_circle_outlined,
+                                    ),
                                   ),
-                                  validator: Validators.nim,
+                                  validator: Validators.loginIdentifier,
                                 ),
                                 const SizedBox(height: 14),
                                 TextFormField(

@@ -21,6 +21,18 @@ class Validators {
     return null;
   }
 
+  /// Validator for the unified login field that accepts either a NIM or
+  /// an email (Requirement 19.1). Only checks that something plausible
+  /// was entered; the backend does the authoritative resolution.
+  static String? loginIdentifier(String? value) {
+    final base = required(value, label: 'NIM atau Email');
+    if (base != null) return base;
+    if (value!.trim().length < 4) {
+      return 'Masukkan NIM atau email yang valid.';
+    }
+    return null;
+  }
+
   static String? email(String? value) {
     final base = required(value, label: 'Email');
     if (base != null) return base;

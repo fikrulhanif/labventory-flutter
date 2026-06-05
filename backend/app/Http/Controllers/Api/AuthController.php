@@ -44,7 +44,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $payload = $this->auth->login(
-            $request->string('nim')->toString(),
+            $request->string('login')->toString(),
             $request->string('password')->toString(),
             $request->ip(),
         );

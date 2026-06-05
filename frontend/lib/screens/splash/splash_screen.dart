@@ -59,7 +59,14 @@ class _SplashScreenState extends State<SplashScreen>
     final auth = context.read<AuthProvider>();
     await auth.bootstrap();
     if (!mounted) return;
-    final next = auth.isAuthenticated ? AppRouter.home : AppRouter.login;
+    final String next;
+    if (auth.isAuthenticated) {
+      // Route staff (admin/laboran) to the admin shell, students to the
+      // standard shell (Requirement 19.8).
+      next = auth.isStaff ? AppRouter.adminHome : AppRouter.home;
+    } else {
+      next = AppRouter.login;
+    }
     Navigator.of(context).pushReplacementNamed(next);
   }
 

@@ -26,6 +26,13 @@ class User {
   final DateTime? updatedAt;
 
   bool get isStudent => role == 'student';
+  bool get isAdmin => role == 'admin';
+  bool get isLaboran => role == 'laboran';
+
+  /// Staff = admin OR laboran. Both get the admin operations experience
+  /// in the mobile app (Requirements 19.8, 20-22).
+  bool get isStaff => isAdmin || isLaboran;
+
   bool get isActive => status == 'active';
 
   factory User.fromJson(Map<String, dynamic> json) {

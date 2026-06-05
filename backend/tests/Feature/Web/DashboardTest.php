@@ -62,11 +62,11 @@ class DashboardTest extends TestCase
         $response->assertOk();
 
         // Assert the labels are present and counts are rendered.
-        $response->assertSeeText('Inventories');
-        $response->assertSeeText('Students');
-        $response->assertSeeText('Total loans');
-        $response->assertSeeText('Available items');
-        $response->assertSeeText('Currently borrowed');
+        $response->assertSeeText('Inventaris');
+        $response->assertSeeText('Mahasiswa');
+        $response->assertSeeText('Total Peminjaman');
+        $response->assertSeeText('Barang Tersedia');
+        $response->assertSeeText('Sedang Dipinjam');
 
         $response->assertSeeText((string) $expectedTotalInventories);
         $response->assertSeeText((string) $expectedAvailable);
@@ -84,7 +84,7 @@ class DashboardTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin')
             ->assertOk()
-            ->assertSeeText('No loan requests yet.');
+            ->assertSeeText('Belum ada permintaan peminjaman.');
     }
 
     public function test_dashboard_renders_recent_loans_in_descending_order(): void
@@ -109,8 +109,7 @@ class DashboardTest extends TestCase
         $response->assertOk();
 
         // Page shows recent-loans header
-        $response->assertSeeText('Recent loans');
-        $response->assertSeeText('Last 5 requests');
+        $response->assertSeeText('Permintaan Peminjaman Terbaru');
     }
 
     public function test_dashboard_recomputes_stats_on_each_load(): void

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../screens/admin/admin_loan_action_screen.dart';
+import '../screens/admin/admin_shell.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/inventory/detail_screen.dart';
@@ -33,6 +35,10 @@ class AppRouter {
   static const String profile = '/profile';
   static const String profileEdit = '/profile/edit';
 
+  // Admin (staff) routes — Requirements 19-22
+  static const String adminHome = '/admin';
+  static const String adminLoanAction = '/admin/loan-action';
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
@@ -57,6 +63,10 @@ class AppRouter {
         return _build(settings, const ProfileScreen());
       case profileEdit:
         return _build(settings, const EditProfileScreen());
+      case adminHome:
+        return _build(settings, const AdminShell());
+      case adminLoanAction:
+        return _build(settings, const AdminLoanActionScreen());
       default:
         return _build(
           settings,

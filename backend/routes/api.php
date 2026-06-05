@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\LoanController;
+use App\Http\Controllers\Api\Admin\AdminInventoryController;
+use App\Http\Controllers\Api\Admin\AdminLoanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -60,3 +62,33 @@ Route::middleware('auth:sanctum')->group(function (): void {
             ->name('api.loans.show');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Admin mobile operations (RBAC) — Requirements 19-22
+|--------------------------------------------------------------------------
+|
+| Staff (admin/laboran) operate the QR handover/return workflow from the
+| same Flutter app. These endpoints reuse LoanService::markPickedUp /
+| markReturned, so the stock-conservation invariant holds identically on
+| both the web dashboard and the mobile admin flow. Students hitting these
+| routes get HTTP 403 from the role middleware (Req 20.3, 21.5, 22.8).
+|
+| {code} matches inventories.code exactly (the bare QR payload, Req 15.1);
+| {loan} is numeric.
+*/
+Route::middleware(['auth:sanctum', 'role:admin,laboran'])
+    ->prefix('admin')
+    ->group(function (): void {
+        Route::get('/inventories/{code}', [AdminInventoryController::class, 'lookup'])
+            ->name('api.admin.inventories.lookup');
+        Route::get('/inventories/{code}/loans', [AdminInventoryController::class, 'loans'])
+            ->name('api.admin.inventories.loans');
+
+        Route::post('/loans/{loan}/handover', [AdminLoanController::class, 'handover'])
+            ->whereNumber('loan')
+            ->name('api.admin.loans.handover');
+        Route::post('/loans/{loan}/return', [AdminLoanController::class, 'return'])
+            ->whereNumber('loan')
+            ->name('api.admin.loans.return');
+    });
