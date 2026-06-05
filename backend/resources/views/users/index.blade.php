@@ -75,23 +75,22 @@
                                 </td>
                                 <td style="text-align:right;">
                                     <div class="lv-actions">
-                                        <a href="{{ route('admin.users.show', $user) }}" class="btn btn-ghost btn-sm" title="View history">
+                                        <a href="{{ route('admin.users.show', $user) }}" class="lv-btn-view" title="View history">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-ghost btn-sm" title="Edit">
+                                        <a href="{{ route('admin.users.edit', $user) }}" class="lv-btn-edit" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
-                                              class="d-inline"
                                               data-confirm="Delete {{ $user->name }}? This cannot be undone."
                                               data-confirm-title="Delete student"
                                               data-confirm-yes="Yes, delete"
-                                              data-confirm-tone="danger">                                            @csrf @method('DELETE')
+                                              data-confirm-tone="danger">
+                                            @csrf @method('DELETE')
                                             <button type="submit"
-                                                    class="btn btn-sm"
-                                                    style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;"
+                                                    class="lv-btn-delete"
                                                     {{ $user->active_loans_count > 0 ? 'disabled' : '' }}
-                                                    title="{{ $user->active_loans_count > 0 ? 'Cannot delete student with active loans' : 'Delete' }}">
+                                                    title="{{ $user->active_loans_count > 0 ? 'Cannot delete: active loans' : 'Delete' }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>

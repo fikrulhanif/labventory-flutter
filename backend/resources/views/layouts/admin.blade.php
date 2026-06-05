@@ -528,6 +528,52 @@
         /* ── Action buttons in table ──────────────────────────────── */
         .lv-actions { display: flex; gap: 5px; justify-content: flex-end; }
         .lv-actions .btn { padding: 5px 10px; }
+
+        /* Colored icon action buttons — visible on white/light backgrounds */
+        .lv-btn-view {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: 8px;
+            background: #eff6ff; border: 1.5px solid #bfdbfe; color: #1d4ed8;
+            cursor: pointer; transition: background .14s, color .14s, transform .10s;
+            text-decoration: none;
+        }
+        .lv-btn-view:hover { background: #1d4ed8; color: #fff; transform: scale(1.05); }
+
+        .lv-btn-edit {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: 8px;
+            background: #fefce8; border: 1.5px solid #fde047; color: #a16207;
+            cursor: pointer; transition: background .14s, color .14s, transform .10s;
+            text-decoration: none;
+        }
+        .lv-btn-edit:hover { background: #ca8a04; color: #fff; transform: scale(1.05); }
+
+        .lv-btn-delete {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: 8px;
+            background: #fef2f2; border: 1.5px solid #fca5a5; color: #dc2626;
+            cursor: pointer; transition: background .14s, color .14s, transform .10s;
+        }
+        .lv-btn-delete:hover { background: #dc2626; color: #fff; transform: scale(1.05); }
+
+        /* Image thumbnails — consistent border treatment */
+        .lv-thumb {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid #c8cedd;
+            background: #f0f3ff;
+            flex-shrink: 0;
+        }
+        .lv-thumb-placeholder {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            border: 2px solid #c8cedd;
+            background: #eef1ff;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .lv-thumb-placeholder i { font-size: .9rem; color: #a5b4fc; }
     </style>
     @stack('head')
 </head>

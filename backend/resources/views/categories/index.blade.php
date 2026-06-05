@@ -63,17 +63,16 @@
                                 <td style="text-align:right;">
                                     <div class="lv-actions">
                                         <a href="{{ route('admin.categories.edit', $category) }}"
-                                           class="btn btn-ghost btn-sm" title="Edit">
+                                           class="lv-btn-edit" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <form method="POST" action="{{ route('admin.categories.destroy', $category) }}"
-                                              class="d-inline"
                                               data-confirm="Delete '{{ $category->name }}'? This cannot be undone."
                                               data-confirm-title="Delete category"
                                               data-confirm-yes="Yes, delete"
-                                              data-confirm-tone="danger">                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm"
-                                                    style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;">
+                                              data-confirm-tone="danger">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="lv-btn-delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>

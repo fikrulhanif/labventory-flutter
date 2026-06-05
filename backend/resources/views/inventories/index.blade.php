@@ -76,11 +76,10 @@
                                 <td>
                                     <div style="display:flex;align-items:center;gap:10px;">
                                         @if ($inv->image_url)
-                                            <img src="{{ $inv->image_url }}" alt=""
-                                                 style="width:38px;height:38px;border-radius:10px;object-fit:cover;border:1px solid #e8eaf0;flex-shrink:0;">
+                                            <img src="{{ $inv->image_url }}" alt="" class="lv-thumb">
                                         @else
-                                            <div style="width:38px;height:38px;border-radius:10px;background:#f1f3f9;border:1px solid #e8eaf0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                                <i class="bi bi-image" style="color:#d1d5db;font-size:.9rem;"></i>
+                                            <div class="lv-thumb-placeholder">
+                                                <i class="bi bi-image"></i>
                                             </div>
                                         @endif
                                         <div>
@@ -103,19 +102,19 @@
                                 </td>
                                 <td style="text-align:right;">
                                     <div class="lv-actions">
-                                        <a href="{{ route('admin.inventories.show', $inv) }}" class="btn btn-ghost btn-sm" title="View">
+                                        <a href="{{ route('admin.inventories.show', $inv) }}" class="lv-btn-view" title="View">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ route('admin.inventories.edit', $inv) }}" class="btn btn-ghost btn-sm" title="Edit">
+                                        <a href="{{ route('admin.inventories.edit', $inv) }}" class="lv-btn-edit" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <form method="POST" action="{{ route('admin.inventories.destroy', $inv) }}"
-                                              class="d-inline"
                                               data-confirm="Delete '{{ $inv->name }}'? This cannot be undone."
                                               data-confirm-title="Delete inventory"
                                               data-confirm-yes="Yes, delete"
-                                              data-confirm-tone="danger">                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;" title="Delete">
+                                              data-confirm-tone="danger">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="lv-btn-delete" title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
