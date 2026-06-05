@@ -145,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                       child: const Column(
                         children: [
                           Text(
-                            'Buat Akun',
+                            'Buat Akun Mahasiswa',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 28,
@@ -155,7 +155,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                           ),
                           SizedBox(height: 6),
                           Text(
-                            'Daftar untuk mulai meminjam alat laboratorium.',
+                            'Daftar sebagai mahasiswa untuk mulai meminjam alat laboratorium.',
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
@@ -191,6 +192,45 @@ class _RegisterScreenState extends State<RegisterScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                // Student-only notice
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 9,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(
+                                      alpha: 0.08,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: 0.20),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.school_outlined,
+                                        size: 16,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Pendaftaran hanya untuk mahasiswa. '
+                                          'Akun staf dibuat oleh administrator.',
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
                                 _field(
                                   label: 'Nama lengkap',
                                   controller: _nameController,

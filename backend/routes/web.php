@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\InventoryController;
 use App\Http\Controllers\Web\LoanController;
 use App\Http\Controllers\Web\QrController;
 use App\Http\Controllers\Web\ReportController;
+use App\Http\Controllers\Web\StaffUserController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -68,6 +69,13 @@ Route::middleware(['auth', 'role:admin,laboran'])
 
         // Student user management (Requirements 13.1 — 13.6)
         Route::resource('users', UserController::class);
+
+        // Staff (admin/laboran) user management — password-verified create
+        Route::post('staff-users/verify-password', [StaffUserController::class, 'verifyPassword'])
+            ->name('staff-users.verify-password');
+        Route::resource('staff-users', StaffUserController::class)
+            ->parameters(['staff-users' => 'staffUser'])
+            ->except(['show']);
 
         // QR scan + code lookup (Requirements 15.6, 15.7)
         Route::get('qr/scan', [QrController::class, 'scan'])->name('qr.scan');

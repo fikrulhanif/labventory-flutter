@@ -624,6 +624,10 @@
            class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i><span>Mahasiswa</span>
         </a>
+        <a href="{{ route('admin.staff-users.index') }}"
+           class="{{ request()->routeIs('admin.staff-users.*') ? 'active' : '' }}">
+            <i class="bi bi-person-gear"></i><span>Staf</span>
+        </a>
         <a href="{{ route('admin.reports.index') }}"
            class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
             <i class="bi bi-file-earmark-bar-graph-fill"></i><span>Laporan</span>
