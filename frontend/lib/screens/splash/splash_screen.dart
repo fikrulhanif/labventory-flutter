@@ -213,7 +213,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
                         child: const Text(
-                          'Campus laboratory inventory',
+                          'Sistem peminjaman inventaris laboratorium kampus',
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.white70, fontSize: 13),
                         ),

@@ -33,7 +33,7 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Profil'),
         automaticallyImplyLeading: !embeddedInShell,
       ),
       body: SafeArea(
@@ -127,7 +127,7 @@ class ProfileScreen extends StatelessWidget {
             const _LoanStatsRow(),
 
             const SizedBox(height: 16),
-            _SectionLabel(text: 'Account'),
+            _SectionLabel(text: 'Akun'),
             const SizedBox(height: 8),
             Card(
               child: Column(
@@ -135,8 +135,8 @@ class ProfileScreen extends StatelessWidget {
                   _SettingTile(
                     icon: Icons.edit_outlined,
                     iconColor: AppColors.primary,
-                    title: 'Edit profile',
-                    subtitle: 'Name, email, password',
+                    title: 'Edit Profil',
+                    subtitle: 'Nama, email, kata sandi',
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRouter.profileEdit),
                   ),
@@ -144,8 +144,8 @@ class ProfileScreen extends StatelessWidget {
                   _SettingTile(
                     icon: Icons.assignment_outlined,
                     iconColor: AppColors.statusBorrowed,
-                    title: 'My loans',
-                    subtitle: 'Borrow history & status',
+                    title: 'Peminjaman Saya',
+                    subtitle: 'Riwayat & status peminjaman',
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRouter.loanHistory),
                   ),
@@ -154,12 +154,12 @@ class ProfileScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
-            _SectionLabel(text: 'Preferences'),
+            _SectionLabel(text: 'Preferensi'),
             const SizedBox(height: 8),
             const _ThemeCard(),
 
             const SizedBox(height: 16),
-            _SectionLabel(text: 'Other'),
+            _SectionLabel(text: 'Lainnya'),
             const SizedBox(height: 8),
             Card(
               child: Column(
@@ -167,16 +167,16 @@ class ProfileScreen extends StatelessWidget {
                   _SettingTile(
                     icon: Icons.help_outline,
                     iconColor: AppColors.info,
-                    title: 'Help & support',
-                    subtitle: 'How borrowing works',
+                    title: 'Bantuan & Dukungan',
+                    subtitle: 'Cara kerja peminjaman',
                     onTap: () => _showAbout(context),
                   ),
                   _SettingDivider(),
                   _SettingTile(
                     icon: Icons.info_outline,
                     iconColor: AppColors.statusReturned,
-                    title: 'About Labventory',
-                    subtitle: 'Version & credits',
+                    title: 'Tentang Labventory',
+                    subtitle: 'Versi & kredit',
                     onTap: () => _showAbout(context, about: true),
                   ),
                 ],
@@ -192,12 +192,12 @@ class ProfileScreen extends StatelessWidget {
               ),
               onPressed: () => _confirmLogout(context),
               icon: const Icon(Icons.logout),
-              label: const Text('Sign out'),
+              label: const Text('Keluar'),
             ),
             const SizedBox(height: 24),
             Center(
               child: Text(
-                'Labventory · Campus Lab Inventory',
+                'Labventory · Inventaris Lab Kampus',
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -212,12 +212,14 @@ class ProfileScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dctx) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text('You will need to log in again to access the app.'),
+        title: const Text('Keluar?'),
+        content: const Text(
+          'Anda perlu masuk kembali untuk mengakses aplikasi.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dctx).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('Batal'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -225,7 +227,7 @@ class ProfileScreen extends StatelessWidget {
               foregroundColor: theme.colorScheme.onError,
             ),
             onPressed: () => Navigator.of(dctx).pop(true),
-            child: const Text('Sign out'),
+            child: const Text('Keluar'),
           ),
         ],
       ),
@@ -301,28 +303,28 @@ class _LoanStatsRow extends StatelessWidget {
           children: [
             _MiniStat(
               value: total.toString(),
-              label: 'Total loans',
+              label: 'Total Peminjaman',
               icon: Icons.history,
               color: AppColors.primary,
             ),
             _MiniDivider(),
             _MiniStat(
               value: active.toString(),
-              label: 'Active',
+              label: 'Aktif',
               icon: Icons.local_shipping_outlined,
               color: AppColors.statusBorrowed,
             ),
             _MiniDivider(),
             _MiniStat(
               value: returned.toString(),
-              label: 'Returned',
+              label: 'Dikembalikan',
               icon: Icons.check_circle_outline,
               color: AppColors.statusReturned,
             ),
             _MiniDivider(),
             _MiniStat(
               value: '$rate%',
-              label: 'Return rate',
+              label: 'Tingkat Pengembalian',
               icon: Icons.analytics_outlined,
               color: AppColors.accent,
             ),
@@ -514,7 +516,7 @@ class _ThemeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Appearance', style: theme.textTheme.titleSmall),
+                  Text('Tampilan', style: theme.textTheme.titleSmall),
                   const SizedBox(height: 2),
                   Text(mode.label, style: theme.textTheme.bodySmall),
                 ],

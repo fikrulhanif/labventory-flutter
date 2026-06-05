@@ -71,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Account created. Please sign in with your NIM and password.',
+            'Akun berhasil dibuat. Silakan masuk dengan NIM dan kata sandi Anda.',
           ),
           duration: Duration(seconds: 3),
         ),
@@ -79,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? 'Registration failed.')),
+        SnackBar(content: Text(auth.errorMessage ?? 'Registrasi gagal.')),
       );
     }
   }
@@ -145,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                       child: const Column(
                         children: [
                           Text(
-                            'Create account',
+                            'Buat Akun',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 28,
@@ -155,7 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           ),
                           SizedBox(height: 6),
                           Text(
-                            'Register to start borrowing lab equipment.',
+                            'Daftar untuk mulai meminjam alat laboratorium.',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
@@ -192,11 +192,11 @@ class _RegisterScreenState extends State<RegisterScreen>
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 _field(
-                                  label: 'Full name',
+                                  label: 'Nama lengkap',
                                   controller: _nameController,
                                   icon: Icons.person_outline,
                                   validator: (v) =>
-                                      Validators.required(v, label: 'Name'),
+                                      Validators.required(v, label: 'Nama'),
                                   errorText: fieldErrors['name']?.first,
                                 ),
                                 const SizedBox(height: 12),
@@ -218,7 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 ),
                                 const SizedBox(height: 12),
                                 _field(
-                                  label: 'Password',
+                                  label: 'Kata Sandi',
                                   controller: _passwordController,
                                   icon: Icons.lock_outline,
                                   obscure: !_showPassword,
@@ -237,7 +237,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 ),
                                 const SizedBox(height: 12),
                                 _field(
-                                  label: 'Confirm password',
+                                  label: 'Konfirmasi kata sandi',
                                   controller: _confirmController,
                                   icon: Icons.lock_outline,
                                   obscure: !_showPassword,
@@ -252,7 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 const SizedBox(height: 24),
                                 _PrimaryButton(
                                   isLoading: auth.isLoading,
-                                  label: 'Create account',
+                                  label: 'Buat Akun',
                                   onPressed: _submit,
                                 ),
                                 const SizedBox(height: 12),
@@ -260,13 +260,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Already have an account? ',
+                                      'Sudah punya akun? ',
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.of(context).pop(),
-                                      child: const Text('Sign in'),
+                                      child: const Text('Masuk'),
                                     ),
                                   ],
                                 ),

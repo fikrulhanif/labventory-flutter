@@ -2,7 +2,7 @@
 
 <div class="row g-3">
     <div class="col-12 col-md-6">
-        <label for="name" class="form-label small fw-medium">Full name</label>
+        <label for="name" class="form-label small fw-medium">Nama lengkap</label>
         <input type="text"
                id="name"
                name="name"
@@ -23,7 +23,7 @@
                maxlength="32"
                required>
         @error('nim')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        <div class="form-text">Used as the student's mobile login identifier.</div>
+        <div class="form-text">Digunakan sebagai identifikasi login mahasiswa di aplikasi mobile.</div>
     </div>
 
     <div class="col-12">
@@ -40,7 +40,7 @@
 
     <div class="col-12 col-md-6">
         <label for="password" class="form-label small fw-medium">
-            {{ ($isCreate ?? false) ? 'Password' : 'New password' }}
+            {{ ($isCreate ?? false) ? 'Kata sandi' : 'Kata sandi baru' }}
         </label>
         <input type="password"
                id="password"
@@ -51,12 +51,12 @@
                @if ($isCreate ?? false) required @endif>
         @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
         @if (! ($isCreate ?? false))
-            <div class="form-text">Leave blank to keep the current password.</div>
+            <div class="form-text">Biarkan kosong untuk mempertahankan kata sandi saat ini.</div>
         @endif
     </div>
 
     <div class="col-12 col-md-6">
-        <label for="password_confirmation" class="form-label small fw-medium">Confirm password</label>
+        <label for="password_confirmation" class="form-label small fw-medium">Konfirmasi kata sandi</label>
         <input type="password"
                id="password_confirmation"
                name="password_confirmation"
@@ -79,7 +79,7 @@
                    value="active"
                    @checked($current === 'active')>
             <label class="form-check-label" for="status_active">
-                <span class="badge text-bg-success">Active</span>
+                <span class="badge text-bg-success">Aktif</span>
             </label>
         </div>
         <div class="form-check form-check-inline">
@@ -90,17 +90,17 @@
                    value="inactive"
                    @checked($current === 'inactive')>
             <label class="form-check-label" for="status_inactive">
-                <span class="badge text-bg-secondary">Inactive</span>
+                <span class="badge text-bg-secondary">Nonaktif</span>
             </label>
         </div>
-        <div class="form-text">Switching to <strong>inactive</strong> will sign this student out of the mobile app immediately.</div>
+        <div class="form-text">Mengubah ke <strong>nonaktif</strong> akan segera memutus sesi mahasiswa dari aplikasi mobile.</div>
         @error('status')<div class="text-danger small">{{ $message }}</div>@enderror
     </div>
 </div>
 
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #f0f2f8;">
-    <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Cancel</a>
+    <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Batal</a>
     <button type="submit" class="btn btn-primary btn-sm">
-        <i class="bi bi-check-lg me-1"></i>{{ $submitLabel ?? 'Save' }}
+        <i class="bi bi-check-lg me-1"></i>{{ $submitLabel ?? 'Simpan' }}
     </button>
 </div>

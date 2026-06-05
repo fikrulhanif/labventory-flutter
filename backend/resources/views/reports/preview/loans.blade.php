@@ -1,10 +1,10 @@
 @extends('reports.preview.layout')
 
-@section('title', 'Loan Report')
+@section('title', 'Laporan Peminjaman')
 @section('toolbar-meta',
     $startDate->toDateString() . ' → ' . $endDate->toDateString() .
-    ' · generated ' . $generatedAt->toDayDateTimeString() . ' UTC')
-@section('report-subtitle', 'Loan transactions within the selected date range.')
+    ' · dibuat ' . $generatedAt->toDayDateTimeString() . ' UTC')
+@section('report-subtitle', 'Transaksi peminjaman dalam rentang tanggal yang dipilih.')
 @section('download-url',
     route('admin.reports.loans', [
         'start_date' => $startDate->toDateString(),
@@ -17,11 +17,11 @@
         $countFor = fn($s) => $byStatus->get($s)?->count() ?? 0;
         $statChips = [
             ['Total', $totalLoans, '#6366f1', 'bi-clipboard-data'],
-            ['Pending',  $countFor('pending'),  '#b45309', 'bi-hourglass'],
-            ['Approved', $countFor('approved'), '#0e7490', 'bi-thumb-up'],
-            ['Borrowed', $countFor('borrowed'), '#6d28d9', 'bi-arrow-left-right'],
-            ['Returned', $countFor('returned'), '#065f46', 'bi-check-circle'],
-            ['Rejected', $countFor('rejected'), '#374151', 'bi-x-circle'],
+            ['Menunggu',    $countFor('pending'),  '#b45309', 'bi-hourglass'],
+            ['Disetujui',   $countFor('approved'), '#0e7490', 'bi-thumb-up'],
+            ['Dipinjam',    $countFor('borrowed'), '#6d28d9', 'bi-arrow-left-right'],
+            ['Dikembalikan',$countFor('returned'), '#065f46', 'bi-check-circle'],
+            ['Ditolak',     $countFor('rejected'), '#374151', 'bi-x-circle'],
         ];
     @endphp
 
@@ -49,19 +49,19 @@
         @endforeach
     </div>
 
-    <div class="section-title"><i class="bi bi-calendar-range" style="color:#6366f1;"></i>Period: {{ $startDate->toDateString() }} — {{ $endDate->toDateString() }}</div>
+    <div class="section-title"><i class="bi bi-calendar-range" style="color:#6366f1;"></i>Periode: {{ $startDate->toDateString() }} — {{ $endDate->toDateString() }}</div>
 
     <table class="report-table">
         <thead>
             <tr>
                 <th style="width:5%;">#</th>
-                <th style="width:17%;">Student</th>
-                <th style="width:20%;">Inventory</th>
-                <th style="width:10%;">Borrow</th>
-                <th style="width:10%;">Return</th>
+                <th style="width:17%;">Mahasiswa</th>
+                <th style="width:20%;">Inventaris</th>
+                <th style="width:10%;">Pinjam</th>
+                <th style="width:10%;">Kembali</th>
                 <th style="width:10%;">Status</th>
-                <th style="width:13%;">Picked up</th>
-                <th>Notes</th>
+                <th style="width:13%;">Diambil</th>
+                <th>Catatan</th>
             </tr>
         </thead>
         <tbody>
@@ -97,7 +97,7 @@
                     <td colspan="8">
                         <div class="empty-state">
                             <i class="bi bi-clipboard"></i>
-                            <p>No loans were submitted in this date range.</p>
+                            <p>Tidak ada peminjaman yang dikirim dalam rentang tanggal ini.</p>
                         </div>
                     </td>
                 </tr>

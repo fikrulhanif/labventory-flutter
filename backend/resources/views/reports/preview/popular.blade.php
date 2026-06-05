@@ -1,11 +1,11 @@
 @extends('reports.preview.layout')
 
-@section('title', 'Most Borrowed Inventory')
+@section('title', 'Inventaris Terpopuler')
 @section('toolbar-meta',
     $startDate->toDateString() . ' → ' . $endDate->toDateString() .
     ' · top ' . $limit .
-    ' · generated ' . $generatedAt->toDayDateTimeString() . ' UTC')
-@section('report-subtitle', 'Top ' . $limit . ' most requested inventory in the period.')
+    ' · dibuat ' . $generatedAt->toDayDateTimeString() . ' UTC')
+@section('report-subtitle', 'Top ' . $limit . ' inventaris paling banyak diminta dalam periode ini.')
 @section('download-url',
     route('admin.reports.popular', [
         'start_date' => $startDate->toDateString(),
@@ -17,36 +17,36 @@
         <div class="meta-chip">
             <div class="meta-chip-icon" style="background:#f59e0b;"><i class="bi bi-trophy"></i></div>
             <div>
-                <div class="meta-chip-label">Items ranked</div>
+                <div class="meta-chip-label">Barang diurutkan</div>
                 <div class="meta-chip-value">{{ number_format($rows->count()) }}</div>
             </div>
         </div>
         <div class="meta-chip">
             <div class="meta-chip-icon" style="background:#6366f1;"><i class="bi bi-clipboard-data"></i></div>
             <div>
-                <div class="meta-chip-label">Total loans</div>
+                <div class="meta-chip-label">Total peminjaman</div>
                 <div class="meta-chip-value">{{ number_format($totalLoans) }}</div>
             </div>
         </div>
         <div class="meta-chip">
             <div class="meta-chip-icon" style="background:#0ea5e9;"><i class="bi bi-calendar-range"></i></div>
             <div>
-                <div class="meta-chip-label">Date range</div>
+                <div class="meta-chip-label">Rentang tanggal</div>
                 <div class="meta-chip-value" style="font-size:.72rem;font-weight:700;">{{ $startDate->toDateString() }} → {{ $endDate->toDateString() }}</div>
             </div>
         </div>
     </div>
 
-    <div class="section-title"><i class="bi bi-bar-chart" style="color:#f59e0b;"></i>Ranking</div>
+    <div class="section-title"><i class="bi bi-bar-chart" style="color:#f59e0b;"></i>Peringkat</div>
 
     <table class="report-table">
         <thead>
             <tr>
                 <th style="width:8%;text-align:center;">#</th>
-                <th style="width:16%;">Code</th>
-                <th>Item name</th>
-                <th style="width:22%;">Category</th>
-                <th class="num" style="width:14%;">Loan count</th>
+                <th style="width:16%;">Kode</th>
+                <th>Nama alat</th>
+                <th style="width:22%;">Kategori</th>
+                <th class="num" style="width:14%;">Jumlah Pinjaman</th>
             </tr>
         </thead>
         <tbody>
@@ -71,7 +71,7 @@
                     <td colspan="5">
                         <div class="empty-state">
                             <i class="bi bi-clipboard"></i>
-                            <p>No loans submitted in this date range.</p>
+                            <p>Tidak ada peminjaman dalam rentang tanggal ini.</p>
                         </div>
                     </td>
                 </tr>

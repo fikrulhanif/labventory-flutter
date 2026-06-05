@@ -5,9 +5,9 @@
 class Validators {
   Validators._();
 
-  static String? required(String? value, {String label = 'This field'}) {
+  static String? required(String? value, {String label = 'Kolom ini'}) {
     if (value == null || value.trim().isEmpty) {
-      return '$label is required.';
+      return '$label wajib diisi.';
     }
     return null;
   }
@@ -16,7 +16,7 @@ class Validators {
     final base = required(value, label: 'NIM');
     if (base != null) return base;
     if (value!.length < 4) {
-      return 'NIM must be at least 4 characters.';
+      return 'NIM minimal 4 karakter.';
     }
     return null;
   }
@@ -26,16 +26,16 @@ class Validators {
     if (base != null) return base;
     final pattern = RegExp(r'^[\w.\-+]+@[\w-]+(\.[\w-]+)+$');
     if (!pattern.hasMatch(value!.trim())) {
-      return 'Enter a valid email address.';
+      return 'Masukkan alamat email yang valid.';
     }
     return null;
   }
 
   static String? password(String? value, {int minLength = 8}) {
-    final base = required(value, label: 'Password');
+    final base = required(value, label: 'Kata sandi');
     if (base != null) return base;
     if (value!.length < minLength) {
-      return 'Password must be at least $minLength characters.';
+      return 'Kata sandi minimal $minLength karakter.';
     }
     return null;
   }
@@ -50,10 +50,10 @@ class Validators {
   ) {
     return (String? value) {
       if (value == null || value.isEmpty) {
-        return 'Confirm your password.';
+        return 'Konfirmasi kata sandi Anda.';
       }
       if (value != originalProvider()) {
-        return 'Passwords do not match.';
+        return 'Kata sandi tidak cocok.';
       }
       return null;
     };

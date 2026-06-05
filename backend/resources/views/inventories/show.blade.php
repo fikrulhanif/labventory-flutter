@@ -5,7 +5,7 @@
 @section('content')
     <nav aria-label="breadcrumb" style="margin-bottom:16px;">
         <ol class="breadcrumb" style="font-size:.75rem;margin:0;">
-            <li class="breadcrumb-item"><a href="{{ route('admin.inventories.index') }}">Inventories</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.inventories.index') }}">Inventaris</a></li>
             <li class="breadcrumb-item active">{{ $inventory->code }}</li>
         </ol>
     </nav>
@@ -20,14 +20,14 @@
                 <i class="bi bi-pencil me-1"></i>Edit
             </a>
             <form method="POST" action="{{ route('admin.inventories.destroy', $inventory) }}"
-                  data-confirm="Delete '{{ $inventory->name }}'? This cannot be undone."
-                  data-confirm-title="Delete inventory"
-                  data-confirm-yes="Yes, delete"
+                  data-confirm="Hapus '{{ $inventory->name }}'? Tindakan ini tidak dapat dibatalkan."
+                  data-confirm-title="Hapus inventaris"
+                  data-confirm-yes="Ya, hapus"
                   data-confirm-tone="danger">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-sm"
                         style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;">
-                    <i class="bi bi-trash me-1"></i>Delete
+                    <i class="bi bi-trash me-1"></i>Hapus
                 </button>
             </form>
         </div>
@@ -37,11 +37,11 @@
         <div class="col-12 col-lg-8">
             <div class="lv-card">
                 <div class="lv-card-header">
-                    <span class="lv-card-title"><i class="bi bi-info-circle me-2 text-primary"></i>Inventory details</span>
+                    <span class="lv-card-title"><i class="bi bi-info-circle me-2 text-primary"></i>Detail inventaris</span>
                     @if ($inventory->status === 'available')
-                        <span class="lv-pill lv-pill-available">Available</span>
+                        <span class="lv-pill lv-pill-available">Tersedia</span>
                     @else
-                        <span class="lv-pill lv-pill-out">Out of stock</span>
+                        <span class="lv-pill lv-pill-out">Stok Habis</span>
                     @endif
                 </div>
                 <div style="padding:20px;">
@@ -59,21 +59,21 @@
                         </div>
                         <div class="col-12 col-sm-7">
                             <div style="margin-bottom:16px;">
-                                <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;">Stock</div>
+                                <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;">Stok</div>
                                 <div style="font-size:2rem;font-weight:800;color:#111827;letter-spacing:-.03em;">{{ $inventory->stock }}</div>
                             </div>
                             <div style="margin-bottom:14px;">
-                                <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;">Description</div>
-                                <div style="font-size:.85rem;color:#374151;line-height:1.55;">{{ $inventory->description ?: 'No description provided.' }}</div>
+                                <div style="font-size:.70rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;">Deskripsi</div>
+                                <div style="font-size:.85rem;color:#374151;line-height:1.55;">{{ $inventory->description ?: 'Tidak ada deskripsi tersedia.' }}</div>
                             </div>
                             <hr style="border-color:#f0f2f8;">
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <div style="font-size:.68rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Category</div>
+                                    <div style="font-size:.68rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Kategori</div>
                                     <div style="font-size:.82rem;font-weight:600;color:#374151;">{{ $inventory->category?->name ?? '—' }}</div>
                                 </div>
                                 <div class="col-6">
-                                    <div style="font-size:.68rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Created</div>
+                                    <div style="font-size:.68rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Dibuat</div>
                                     <div style="font-size:.78rem;color:#374151;">{{ $inventory->created_at?->format('d M Y') }}</div>
                                 </div>
                             </div>
@@ -97,14 +97,14 @@
                             <a href="{{ $inventory->qr_url }}"
                                download="{{ $inventory->code }}.png"
                                class="btn btn-ghost btn-sm" style="width:100%;">
-                                <i class="bi bi-download me-1"></i>Download QR
+                                <i class="bi bi-download me-1"></i>Unduh QR
                             </a>
                         </div>
                     @else
                         <div style="width:180px;height:180px;background:#f8f9ff;border-radius:12px;border:1px solid #e8eaf0;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
                             <i class="bi bi-qr-code" style="font-size:2.5rem;color:#d1d5db;"></i>
                         </div>
-                        <p style="font-size:.78rem;color:#9ca3af;margin:0;">QR not yet generated.</p>
+                        <p style="font-size:.78rem;color:#9ca3af;margin:0;">QR belum dibuat.</p>
                     @endif
                 </div>
             </div>

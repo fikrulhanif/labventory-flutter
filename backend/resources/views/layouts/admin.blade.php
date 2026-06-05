@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard') · Labventory Admin</title>
+    <title>@yield('title', 'Dasbor') · Labventory Admin</title>
     {{-- All assets served locally — no CDN dependency --}}
     <link href="/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <link href="/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
@@ -593,7 +593,7 @@
         </div>
         <div>
             <div class="lv-brand-name">Labventory</div>
-            <div class="lv-brand-tag">Admin</div>
+            <div class="lv-brand-tag">Portal Admin</div>
         </div>
     </a>
 
@@ -605,32 +605,32 @@
             <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
         </a>
 
-        <div class="lv-nav-section">Catalog</div>
+        <div class="lv-nav-section">Katalog</div>
         <a href="{{ route('admin.inventories.index') }}"
            class="{{ request()->routeIs('admin.inventories.*') ? 'active' : '' }}">
-            <i class="bi bi-boxes"></i><span>Inventories</span>
+            <i class="bi bi-boxes"></i><span>Inventaris</span>
         </a>
         <a href="{{ route('admin.categories.index') }}"
            class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-            <i class="bi bi-tags-fill"></i><span>Categories</span>
+            <i class="bi bi-tags-fill"></i><span>Kategori</span>
         </a>
 
-        <div class="lv-nav-section">Operations</div>
+        <div class="lv-nav-section">Operasi</div>
         <a href="{{ route('admin.loans.index') }}"
            class="{{ request()->routeIs('admin.loans.*') ? 'active' : '' }}">
-            <i class="bi bi-clipboard2-check-fill"></i><span>Loans</span>
+            <i class="bi bi-clipboard2-check-fill"></i><span>Peminjaman</span>
         </a>
         <a href="{{ route('admin.users.index') }}"
            class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-            <i class="bi bi-people-fill"></i><span>Students</span>
+            <i class="bi bi-people-fill"></i><span>Mahasiswa</span>
         </a>
         <a href="{{ route('admin.reports.index') }}"
            class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-            <i class="bi bi-file-earmark-bar-graph-fill"></i><span>Reports</span>
+            <i class="bi bi-file-earmark-bar-graph-fill"></i><span>Laporan</span>
         </a>
         <a href="{{ route('admin.qr.scan') }}"
            class="{{ request()->routeIs('admin.qr.*') ? 'active' : '' }}">
-            <i class="bi bi-qr-code-scan"></i><span>QR Scan</span>
+            <i class="bi bi-qr-code-scan"></i><span>Scan QR</span>
         </a>
     </nav>
 
@@ -662,14 +662,14 @@
             <button class="lv-menu-toggle" id="lv-menu-btn" type="button" aria-label="Toggle sidebar">
                 <i class="bi bi-list"></i>
             </button>
-            <span class="lv-page-title">@yield('title', 'Dashboard')</span>
+            <span class="lv-page-title">@yield('title', 'Dasbor')</span>
         </div>
         <div class="lv-topbar-right">
             <span class="lv-email-badge">{{ auth()->user()?->email }}</span>
             <form method="POST" action="{{ route('logout') }}" class="m-0" data-logout>
                 @csrf
                 <button type="submit" class="btn-logout">
-                    <i class="bi bi-box-arrow-right"></i> Sign out
+                    <i class="bi bi-box-arrow-right"></i> Keluar
                 </button>
             </form>
         </div>
@@ -755,10 +755,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const icons = { warning: 'warning', danger: 'error', info: 'question' };
             const result = await SwalBase.fire({
                 icon: icons[tone] || 'warning',
-                title: form.dataset.confirmTitle || 'Confirm action',
+                title: form.dataset.confirmTitle || 'Konfirmasi tindakan',
                 text:  msg,
-                confirmButtonText: form.dataset.confirmYes  || 'Yes, proceed',
-                cancelButtonText:  form.dataset.confirmNo   || 'Cancel',
+                confirmButtonText: form.dataset.confirmYes  || 'Ya, lanjutkan',
+                cancelButtonText:  form.dataset.confirmNo   || 'Batal',
             });
             if (result.isConfirmed) form.submit();
         });
@@ -771,10 +771,10 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const result = await SwalBase.fire({
                 icon: 'question',
-                title: 'Sign out?',
-                text: 'You will be redirected to the login page.',
-                confirmButtonText: 'Yes, sign out',
-                cancelButtonText: 'Stay logged in',
+                title: 'Keluar?',
+                text: 'Anda akan diarahkan ke halaman login.',
+                confirmButtonText: 'Ya, keluar',
+                cancelButtonText: 'Tetap masuk',
             });
             if (result.isConfirmed) form.submit();
         });

@@ -4,11 +4,11 @@
 
 @php
     $statCards = [
-        ['Inventories',       $stats['total_inventories'], 'bi-boxes',              'lv-stat-1'],
-        ['Students',          $stats['total_students'],    'bi-people-fill',        'lv-stat-2'],
-        ['Total loans',       $stats['total_loans'],       'bi-clipboard2-check',   'lv-stat-3'],
-        ['Available items',   $stats['available_count'],   'bi-check-circle-fill',  'lv-stat-4'],
-        ['Currently borrowed',$stats['borrowed_count'],    'bi-arrow-left-right',   'lv-stat-5'],
+        ['Inventaris',       $stats['total_inventories'], 'bi-boxes',              'lv-stat-1'],
+        ['Mahasiswa',        $stats['total_students'],    'bi-people-fill',        'lv-stat-2'],
+        ['Total Peminjaman', $stats['total_loans'],       'bi-clipboard2-check',   'lv-stat-3'],
+        ['Barang Tersedia',  $stats['available_count'],   'bi-check-circle-fill',  'lv-stat-4'],
+        ['Sedang Dipinjam',  $stats['borrowed_count'],    'bi-arrow-left-right',   'lv-stat-5'],
     ];
 @endphp
 
@@ -16,10 +16,10 @@
     <div class="lv-page-header">
         <div>
             <h1>Dashboard</h1>
-            <p>Lab inventory at a glance · {{ now()->format('l, d F Y') }}</p>
+            <p>Ringkasan inventaris laboratorium · {{ now()->format('l, d F Y') }}</p>
         </div>
         <a href="{{ route('admin.loans.index') }}" class="btn btn-primary btn-sm">
-            <i class="bi bi-clipboard2-list me-1"></i> View all loans
+            <i class="bi bi-clipboard2-list me-1"></i> Lihat semua peminjaman
         </a>
     </div>
 
@@ -43,28 +43,28 @@
     {{-- Recent loans table --}}
     <div class="lv-card">
         <div class="lv-card-header">
-            <span class="lv-card-title"><i class="bi bi-clock-history me-2 text-primary"></i>Recent loan requests</span>
+            <span class="lv-card-title"><i class="bi bi-clock-history me-2 text-primary"></i>Permintaan Peminjaman Terbaru</span>
             <a href="{{ route('admin.loans.index') }}" class="btn btn-ghost btn-sm">
-                See all <i class="bi bi-arrow-right ms-1"></i>
+                Lihat semua <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
 
         @if ($recentLoans->isEmpty())
             <div class="lv-empty">
                 <i class="bi bi-inbox"></i>
-                <p>No loan requests yet.</p>
+                <p>Belum ada permintaan peminjaman.</p>
             </div>
         @else
             <div style="overflow-x:auto;">
                 <table class="lv-table">
                     <thead>
                         <tr>
-                            <th>Student</th>
+                            <th>Mahasiswa</th>
                             <th>NIM</th>
-                            <th>Inventory</th>
+                            <th>Inventaris</th>
                             <th>Status</th>
-                            <th style="text-align:right;">Submitted</th>
-                            <th style="text-align:right;">Action</th>
+                            <th style="text-align:right;">Dikirim</th>
+                            <th style="text-align:right;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

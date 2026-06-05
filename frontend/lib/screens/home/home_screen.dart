@@ -148,8 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ..._buildDueSoonBanner(loans.items, theme),
 
                   _SectionHeader(
-                    title: 'Browse by category',
-                    trailingLabel: 'See all',
+                    title: 'Jelajahi berdasarkan kategori',
+                    trailingLabel: 'Lihat semua',
                     onTrailing: () => _switchTab(1),
                   ),
                   _CategoryStrip(
@@ -161,8 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 16),
                   _SectionHeader(
-                    title: 'Featured inventory',
-                    trailingLabel: 'See all',
+                    title: 'Inventaris Unggulan',
+                    trailingLabel: 'Lihat semua',
                     onTrailing: () => _switchTab(1),
                   ),
                   _FeaturedInventory(
@@ -171,8 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 16),
                   _SectionHeader(
-                    title: 'Recent activity',
-                    trailingLabel: loans.items.isEmpty ? null : 'See all',
+                    title: 'Aktivitas Terbaru',
+                    trailingLabel: loans.items.isEmpty ? null : 'Lihat semua',
                     onTrailing: loans.items.isEmpty
                         ? null
                         : () => _switchTab(2),
@@ -330,10 +330,10 @@ class _HeroHeader extends StatelessWidget {
 
   static String _greeting() {
     final h = DateTime.now().hour;
-    if (h < 11) return 'Good morning';
-    if (h < 15) return 'Good afternoon';
-    if (h < 19) return 'Good evening';
-    return 'Good night';
+    if (h < 11) return 'Selamat pagi';
+    if (h < 15) return 'Selamat siang';
+    if (h < 19) return 'Selamat sore';
+    return 'Selamat malam';
   }
 
   /// Title-case the user's full name for display in the hero. We keep
@@ -403,21 +403,21 @@ class _StatStrip extends StatelessWidget {
               _StatTile(
                 icon: Icons.pending_actions,
                 tone: AppColors.statusPending,
-                label: 'Active',
+                label: 'Aktif',
                 value: activeLoans.toString(),
               ),
               _Divider(),
               _StatTile(
                 icon: Icons.check_circle_outline,
                 tone: AppColors.statusReturned,
-                label: 'Returned',
+                label: 'Dikembalikan',
                 value: returned.toString(),
               ),
               _Divider(),
               _StatTile(
                 icon: Icons.inventory_2_outlined,
                 tone: AppColors.primary,
-                label: 'Available',
+                label: 'Tersedia',
                 value: available.toString(),
               ),
             ],
@@ -825,7 +825,7 @@ class _FeaturedCard extends StatelessWidget {
                             color: available
                                 ? AppColors.statusReturned
                                 : AppColors.statusRejected,
-                            label: available ? 'Available' : 'Out',
+                            label: available ? 'Tersedia' : 'Habis',
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -922,20 +922,20 @@ class _RecentActivity extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'No loans yet',
+                'Belum ada peminjaman',
                 style: theme.textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
               Text(
-                'Pick an item from the inventory to submit your first loan.',
+                'Pilih alat dari inventaris untuk mengajukan peminjaman pertama Anda.',
                 style: theme.textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 14),
               FilledButton.tonal(
                 onPressed: onEmptyAction,
-                child: const Text('Browse inventory'),
+                child: const Text('Jelajahi Inventaris'),
               ),
             ],
           ),
@@ -1033,25 +1033,25 @@ class _QuickActions extends StatelessWidget {
     final items = [
       (
         icon: Icons.inventory_2_outlined,
-        label: 'Browse',
+        label: 'Jelajahi',
         color: AppColors.primary,
         tab: 1,
       ),
       (
         icon: Icons.add_circle_outline,
-        label: 'Borrow',
+        label: 'Pinjam',
         color: AppColors.accent,
         tab: 1,
       ),
       (
         icon: Icons.assignment_outlined,
-        label: 'My loans',
+        label: 'Pinjaman',
         color: AppColors.statusBorrowed,
         tab: 2,
       ),
       (
         icon: Icons.person_outline,
-        label: 'Profile',
+        label: 'Profil',
         color: AppColors.statusReturned,
         tab: 3,
       ),
@@ -1174,8 +1174,8 @@ class _DueSoonBanner extends StatelessWidget {
                 children: [
                   Text(
                     urgent
-                        ? 'Return due TODAY'
-                        : 'Return due in $daysLeft day${daysLeft == 1 ? '' : 's'}',
+                        ? 'Harus dikembalikan HARI INI'
+                        : 'Harus dikembalikan dalam $daysLeft hari',
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: urgent
                           ? AppColors.danger
@@ -1189,7 +1189,7 @@ class _DueSoonBanner extends StatelessWidget {
                   ),
                   if (loans.length > 1)
                     Text(
-                      'and ${loans.length - 1} more',
+                      'dan ${loans.length - 1} lagi',
                       style: theme.textTheme.bodySmall,
                     ),
                 ],

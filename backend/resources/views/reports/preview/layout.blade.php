@@ -264,14 +264,14 @@
         </div>
         <div class="lv-toolbar-actions">
             <a href="{{ route('admin.reports.index') }}" class="toolbar-btn toolbar-btn-back">
-                <i class="bi bi-arrow-left"></i> Back
+                <i class="bi bi-arrow-left"></i> Kembali
             </a>
             <button type="button" class="toolbar-btn toolbar-btn-print" onclick="window.print()">
-                <i class="bi bi-printer"></i> Print
+                <i class="bi bi-printer"></i> Cetak
             </button>
             @hasSection('download-url')
                 <a href="@yield('download-url')" class="toolbar-btn toolbar-btn-download" target="_blank">
-                    <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                    <i class="bi bi-file-earmark-pdf"></i> Unduh PDF
                 </a>
             @endif
         </div>
@@ -286,7 +286,7 @@
                     <span class="report-brand">Labventory</span>
                 </div>
                 <h2 class="report-title">@yield('title')</h2>
-                <p class="report-subtitle">@yield('report-subtitle', 'Campus Laboratory Inventory System')</p>
+                <p class="report-subtitle">@yield('report-subtitle', 'Sistem Inventaris Laboratorium Kampus')</p>
             </div>
             <div class="report-header-right">
                 <div class="report-generated">@yield('toolbar-meta')</div>

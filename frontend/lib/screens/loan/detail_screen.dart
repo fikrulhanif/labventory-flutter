@@ -53,7 +53,9 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
     final loan = _loan;
 
     return Scaffold(
-      appBar: AppBar(title: Text(loan == null ? 'Loan' : 'Loan #${loan.id}')),
+      appBar: AppBar(
+        title: Text(loan == null ? 'Peminjaman' : 'Peminjaman #${loan.id}'),
+      ),
       body: _loading
           ? const _LoanDetailSkeleton()
           : (loan == null
@@ -79,28 +81,28 @@ class _LoanDetailBody extends StatelessWidget {
         const SizedBox(height: 16),
         _InventoryCard(loan: loan),
         const SizedBox(height: 16),
-        _SectionTitle(text: 'Period'),
+        _SectionTitle(text: 'Periode'),
         const SizedBox(height: 8),
         _PeriodCard(loan: loan),
         const SizedBox(height: 16),
-        _SectionTitle(text: 'Timeline'),
+        _SectionTitle(text: 'Kronologi'),
         const SizedBox(height: 8),
         _Timeline(loan: loan),
         if (loan.notes != null && loan.notes!.isNotEmpty) ...[
           const SizedBox(height: 16),
-          _SectionTitle(text: 'Notes'),
+          _SectionTitle(text: 'Catatan'),
           const SizedBox(height: 8),
           _NotesCard(text: loan.notes!),
         ],
         if (loan.rejectReason != null && loan.rejectReason!.isNotEmpty) ...[
           const SizedBox(height: 16),
-          _SectionTitle(text: 'Rejection reason'),
+          _SectionTitle(text: 'Alasan Penolakan'),
           const SizedBox(height: 8),
           _RejectionCard(reason: loan.rejectReason!),
         ],
         if (loan.documentUrl != null) ...[
           const SizedBox(height: 16),
-          _SectionTitle(text: 'KTM document'),
+          _SectionTitle(text: 'Dokumen KTM'),
           const SizedBox(height: 8),
           _KtmCard(loanId: loan.id, url: loan.documentUrl!),
         ],
@@ -212,11 +214,11 @@ class _StatusHero extends StatelessWidget {
 
   static String _hintFor(LoanStatus s) {
     return switch (s) {
-      LoanStatus.pending => 'Waiting for the lab to review your request.',
-      LoanStatus.approved => 'Approved! Pick up the item at the lab counter.',
-      LoanStatus.borrowed => 'You currently have this item.',
-      LoanStatus.returned => 'Item returned. Thank you!',
-      LoanStatus.rejected => 'See the rejection reason below.',
+      LoanStatus.pending => 'Menunggu lab meninjau permintaan Anda.',
+      LoanStatus.approved => 'Disetujui! Ambil alat di konter lab.',
+      LoanStatus.borrowed => 'Anda sedang meminjam alat ini.',
+      LoanStatus.returned => 'Alat sudah dikembalikan. Terima kasih!',
+      LoanStatus.rejected => 'Lihat alasan penolakan di bawah.',
       LoanStatus.unknown => '',
     };
   }
@@ -255,7 +257,7 @@ class _InventoryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    loan.inventory?.name ?? 'Inventory',
+                    loan.inventory?.name ?? 'Inventaris',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -307,7 +309,7 @@ class _PeriodCard extends StatelessWidget {
           children: [
             Expanded(
               child: _DateBox(
-                label: 'Borrow',
+                label: 'Pinjam',
                 value: loan.borrowDate == null
                     ? '—'
                     : df.format(loan.borrowDate!),
@@ -331,7 +333,7 @@ class _PeriodCard extends StatelessWidget {
             ),
             Expanded(
               child: _DateBox(
-                label: 'Return',
+                label: 'Kembali',
                 value: loan.returnDate == null
                     ? '—'
                     : df.format(loan.returnDate!),
@@ -408,22 +410,22 @@ class _Timeline extends StatelessWidget {
 
     final entries = <_Step>[
       _Step(
-        title: 'Submitted',
+        title: 'Dikirim',
         subtitle: loan.createdAt == null
-            ? 'Request created'
+            ? 'Permintaan dibuat'
             : dt.format(loan.createdAt!.toLocal()),
         done: true,
         icon: Icons.send_outlined,
       ),
       _Step(
-        title: loan.status == LoanStatus.rejected ? 'Rejected' : 'Approved',
+        title: loan.status == LoanStatus.rejected ? 'Ditolak' : 'Disetujui',
         subtitle: loan.status == LoanStatus.rejected
             ? (loan.updatedAt == null
-                  ? 'Request rejected'
+                  ? 'Permintaan ditolak'
                   : dt.format(loan.updatedAt!.toLocal()))
             : (loan.status == LoanStatus.pending
-                  ? 'Awaiting review'
-                  : 'Lab approved your request'),
+                  ? 'Menunggu persetujuan'
+                  : 'Lab menyetujui permintaan Anda'),
         done:
             loan.status == LoanStatus.approved ||
             loan.status == LoanStatus.borrowed ||
@@ -435,17 +437,17 @@ class _Timeline extends StatelessWidget {
             : Icons.thumb_up_outlined,
       ),
       _Step(
-        title: 'Picked up',
+        title: 'Diambil',
         subtitle: loan.pickedUpAt == null
-            ? 'Item not yet picked up'
+            ? 'Alat belum diambil'
             : dt.format(loan.pickedUpAt!.toLocal()),
         done: loan.pickedUpAt != null,
         icon: Icons.local_shipping_outlined,
       ),
       _Step(
-        title: 'Returned',
+        title: 'Dikembalikan',
         subtitle: loan.returnedAt == null
-            ? 'Item not yet returned'
+            ? 'Alat belum dikembalikan'
             : dt.format(loan.returnedAt!.toLocal()),
         done: loan.returnedAt != null,
         icon: Icons.check_circle_outline,
@@ -653,8 +655,11 @@ class _KtmCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Identity card', style: theme.textTheme.titleSmall),
-                  Text('Tap to view in app', style: theme.textTheme.bodySmall),
+                  Text('Kartu Identitas', style: theme.textTheme.titleSmall),
+                  Text(
+                    'Ketuk untuk lihat di aplikasi',
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),
@@ -670,7 +675,7 @@ class _KtmCard extends StatelessWidget {
                   ),
                 ),
               ),
-              child: const Text('Open'),
+              child: const Text('Buka'),
             ),
           ],
         ),
@@ -696,7 +701,7 @@ class _ErrorBody extends StatelessWidget {
             Icon(Icons.error_outline, size: 56, color: theme.colorScheme.error),
             const SizedBox(height: 12),
             Text(
-              message ?? 'No loan selected.',
+              message ?? 'Tidak ada peminjaman dipilih.',
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),

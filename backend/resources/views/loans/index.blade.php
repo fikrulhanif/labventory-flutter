@@ -1,23 +1,23 @@
 @extends('layouts.admin')
 
-@section('title', 'Loans')
+@section('title', 'Peminjaman')
 
 @php
     $statusTabs = [
-        ''          => ['All', 'all'],
-        'pending'   => ['Pending',  'lv-pill-pending'],
-        'approved'  => ['Approved', 'lv-pill-approved'],
-        'borrowed'  => ['Borrowed', 'lv-pill-borrowed'],
-        'returned'  => ['Returned', 'lv-pill-returned'],
-        'rejected'  => ['Rejected', 'lv-pill-rejected'],
+        ''          => ['Semua', 'all'],
+        'pending'   => ['Menunggu',  'lv-pill-pending'],
+        'approved'  => ['Disetujui', 'lv-pill-approved'],
+        'borrowed'  => ['Dipinjam', 'lv-pill-borrowed'],
+        'returned'  => ['Dikembalikan', 'lv-pill-returned'],
+        'rejected'  => ['Ditolak', 'lv-pill-rejected'],
     ];
 @endphp
 
 @section('content')
     <div class="lv-page-header">
         <div>
-            <h1>Loan Requests</h1>
-            <p>Manage and process student borrow requests.</p>
+            <h1>Permintaan Peminjaman</h1>
+            <p>Kelola dan proses permintaan peminjaman mahasiswa.</p>
         </div>
     </div>
 
@@ -52,19 +52,19 @@
         @if ($loans->isEmpty())
             <div class="lv-empty">
                 <i class="bi bi-clipboard"></i>
-                <p>No loan requests{{ $selectedStatus ? ' with status '.$selectedStatus : '' }}.</p>
+                <p>Tidak ada permintaan peminjaman{{ $selectedStatus ? ' dengan status '.$selectedStatus : '' }}.</p>
             </div>
         @else
             <div style="overflow-x:auto;">
                 <table class="lv-table">
                     <thead>
                         <tr>
-                            <th>Student</th>
-                            <th>Inventory</th>
-                            <th>Period</th>
+                            <th>Mahasiswa</th>
+                            <th>Inventaris</th>
+                            <th>Periode</th>
                             <th>Status</th>
-                            <th>Submitted</th>
-                            <th style="text-align:right;">Action</th>
+                            <th>Dikirim</th>
+                            <th style="text-align:right;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -87,7 +87,7 @@
                                 <td style="font-size:.78rem;color:#9ca3af;">{{ $loan->created_at?->diffForHumans() }}</td>
                                 <td style="text-align:right;">
                                     <a href="{{ route('admin.loans.show', $loan) }}" class="btn btn-primary btn-sm">
-                                        <i class="bi bi-eye me-1"></i>Review
+                                        <i class="bi bi-eye me-1"></i>Tinjau
                                     </a>
                                 </td>
                             </tr>

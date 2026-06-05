@@ -55,7 +55,7 @@ class _LoanHistoryScreenState extends State<LoanHistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My loans'),
+        title: const Text('Peminjaman Saya'),
         automaticallyImplyLeading: !widget.embeddedInShell,
       ),
       body: Column(
@@ -121,7 +121,7 @@ class _StatBanner extends StatelessWidget {
           ),
           _BannerDivider(),
           _BannerStat(
-            label: 'Active',
+            label: 'Aktif',
             value: active.toString(),
             icon: Icons.local_shipping_outlined,
           ),
@@ -228,7 +228,7 @@ class _StatusFilterChips extends StatelessWidget {
       child: Row(
         children: [
           ChoiceChip(
-            label: const Text('All'),
+            label: const Text('Semua'),
             selected: selected == null,
             onSelected: (_) => provider.setStatusFilter(null),
           ),
@@ -264,11 +264,11 @@ class _Body extends StatelessWidget {
     if (provider.state == LoanHistoryState.error && provider.items.isEmpty) {
       return EmptyState(
         icon: Icons.error_outline,
-        title: 'Could not load loans',
+        title: 'Gagal memuat peminjaman',
         message: provider.errorMessage,
         action: FilledButton(
           onPressed: () => provider.loadHistory(refresh: true),
-          child: const Text('Try again'),
+          child: const Text('Coba Lagi'),
         ),
       );
     }
@@ -276,12 +276,12 @@ class _Body extends StatelessWidget {
     if (provider.items.isEmpty) {
       return EmptyState(
         icon: Icons.assignment_outlined,
-        title: 'No loan requests yet',
+        title: 'Belum ada permintaan peminjaman',
         message:
-            'Browse the inventory and submit your first loan request — it only takes a minute.',
+            'Jelajahi inventaris dan ajukan peminjaman pertama Anda — hanya butuh beberapa menit.',
         action: FilledButton.icon(
           icon: const Icon(Icons.search),
-          label: const Text('Browse inventory'),
+          label: const Text('Jelajahi Inventaris'),
           onPressed: () => AppShell.of(context)?.setIndex(1),
         ),
       );

@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Students')
+@section('title', 'Mahasiswa')
 
 @section('content')
     <div class="lv-page-header">
         <div>
-            <h1>Students</h1>
-            <p>Manage student accounts that can borrow inventory.</p>
+            <h1>Mahasiswa</h1>
+            <p>Kelola akun mahasiswa yang dapat meminjam inventaris.</p>
         </div>
         <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
-            <i class="bi bi-person-plus-fill me-1"></i> Add student
+            <i class="bi bi-person-plus-fill me-1"></i> Tambah Mahasiswa
         </a>
     </div>
 
@@ -17,16 +17,16 @@
         <div class="lv-card-header" style="background:#f0f3ff;">
             <form method="GET" class="lv-filters">
                 <div class="lv-filter-field" style="flex:1;min-width:200px;">
-                    <label class="form-label" for="search">Search</label>
+                    <label class="form-label" for="search">Cari</label>
                     <input type="search" id="search" name="search" value="{{ $search }}"
-                           class="form-control form-control-sm" placeholder="Name, NIM, or email…">
+                           class="form-control form-control-sm" placeholder="Nama, NIM, atau email…">
                 </div>
                 <div style="display:flex;gap:8px;align-items:flex-end;">
                     <button class="btn btn-apply btn-sm" type="submit">
-                        <i class="bi bi-search me-1"></i>Search
+                        <i class="bi bi-search me-1"></i>Cari
                     </button>
                     @if ($search !== '')
-                        <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Clear</a>
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Bersihkan</a>
                     @endif
                 </div>
             </form>
@@ -35,19 +35,19 @@
         @if ($users->isEmpty())
             <div class="lv-empty">
                 <i class="bi bi-people"></i>
-                <p>No students found{{ $search ? ' for "'.$search.'"' : '' }}.</p>
+                <p>Tidak ada mahasiswa{{ $search ? ' untuk "'.$search.'"' : '' }}.</p>
             </div>
         @else
             <div style="overflow-x:auto;">
                 <table class="lv-table">
                     <thead>
                         <tr>
-                            <th>Student</th>
+                            <th>Mahasiswa</th>
                             <th>NIM</th>
                             <th>Email</th>
                             <th>Status</th>
-                            <th style="text-align:center;">Active loans</th>
-                            <th style="text-align:right;">Actions</th>
+                            <th style="text-align:center;">Pinjaman Aktif</th>
+                            <th style="text-align:right;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,9 +63,9 @@
                                 <td style="color:#6b7280;font-size:.78rem;">{{ $user->email }}</td>
                                 <td>
                                     @if ($user->status === 'active')
-                                        <span class="lv-pill lv-pill-active">Active</span>
+                                        <span class="lv-pill lv-pill-active">Aktif</span>
                                     @else
-                                        <span class="lv-pill lv-pill-inactive">Inactive</span>
+                                        <span class="lv-pill lv-pill-inactive">Nonaktif</span>
                                     @endif
                                 </td>
                                 <td style="text-align:center;">
@@ -82,15 +82,15 @@
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
-                                              data-confirm="Delete {{ $user->name }}? This cannot be undone."
-                                              data-confirm-title="Delete student"
-                                              data-confirm-yes="Yes, delete"
+                                              data-confirm="Hapus {{ $user->name }}? Tindakan ini tidak dapat dibatalkan."
+                                              data-confirm-title="Hapus mahasiswa"
+                                              data-confirm-yes="Ya, hapus"
                                               data-confirm-tone="danger">
                                             @csrf @method('DELETE')
                                             <button type="submit"
                                                     class="lv-btn-delete"
                                                     {{ $user->active_loans_count > 0 ? 'disabled' : '' }}
-                                                    title="{{ $user->active_loans_count > 0 ? 'Cannot delete: active loans' : 'Delete' }}">
+                                                    title="{{ $user->active_loans_count > 0 ? 'Tidak dapat dihapus: ada peminjaman aktif' : 'Hapus' }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>

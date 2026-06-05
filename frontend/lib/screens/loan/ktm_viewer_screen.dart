@@ -172,7 +172,7 @@ class _PdfPlaceholder extends StatelessWidget {
             const Icon(Icons.picture_as_pdf, color: Colors.white, size: 80),
             const SizedBox(height: 16),
             const Text(
-              'KTM uploaded as PDF',
+              'KTM diupload sebagai PDF',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -181,13 +181,12 @@ class _PdfPlaceholder extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'PDF size: ${(bytes / 1024).toStringAsFixed(1)} KB',
+              'Ukuran PDF: ${(bytes / 1024).toStringAsFixed(1)} KB',
               style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
             const SizedBox(height: 24),
             const Text(
-              'In-app PDF preview is not available for students. The lab '
-              'staff can review your KTM PDF from the admin dashboard.',
+              'Pratinjau PDF tidak tersedia di aplikasi. Petugas lab dapat memeriksa KTM Anda melalui dasbor admin.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white70, fontSize: 13),
             ),
@@ -216,7 +215,7 @@ class _UnknownPlaceholder extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Unsupported file type ($contentType).',
+              'Tipe file tidak didukung ($contentType).',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white70),
             ),

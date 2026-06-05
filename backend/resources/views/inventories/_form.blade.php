@@ -16,7 +16,7 @@
             </div>
 
             <div class="col-12 col-md-6">
-                <label for="code" class="form-label small fw-medium">Inventory code</label>
+                <label for="code" class="form-label small fw-medium">Kode inventaris</label>
                 <input type="text"
                        id="code"
                        name="code"
@@ -26,16 +26,16 @@
                        placeholder="INV-001"
                        required>
                 @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <div class="form-text">Used by the QR code. Must be unique.</div>
+                <div class="form-text">Digunakan oleh kode QR. Harus unik.</div>
             </div>
 
             <div class="col-12 col-md-6">
-                <label for="category_id" class="form-label small fw-medium">Category</label>
+                <label for="category_id" class="form-label small fw-medium">Kategori</label>
                 <select id="category_id"
                         name="category_id"
                         class="form-select @error('category_id') is-invalid @enderror"
                         required>
-                    <option value="">— select a category —</option>
+                    <option value="">— pilih kategori —</option>
                     @foreach ($categories as $category)
                         <option value="{{ $category->id }}"
                             @selected((int) old('category_id', $inventory->category_id ?? null) === $category->id)>
@@ -56,11 +56,11 @@
                        class="form-control @error('stock') is-invalid @enderror"
                        required>
                 @error('stock')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <div class="form-text">Status is derived automatically: available iff stock &gt; 0.</div>
+                <div class="form-text">Status ditentukan otomatis: tersedia jika stok &gt; 0.</div>
             </div>
 
             <div class="col-12">
-                <label for="description" class="form-label small fw-medium">Description</label>
+                <label for="description" class="form-label small fw-medium">Deskripsi</label>
                 <textarea id="description"
                           name="description"
                           rows="4"
@@ -72,7 +72,7 @@
     </div>
 
     <div class="col-12 col-lg-4">
-        <label class="form-label small fw-medium">Image</label>
+        <label class="form-label small fw-medium">Gambar</label>
 
         @if (! empty($inventory?->image_url))
             <div class="border rounded p-2 mb-2 bg-light text-center">
@@ -80,7 +80,7 @@
                      alt="Inventory image"
                      class="img-fluid rounded"
                      style="max-height:180px;">
-                <div class="text-muted small mt-2">Current image</div>
+                <div class="text-muted small mt-2">Gambar saat ini</div>
             </div>
         @endif
 
@@ -90,13 +90,13 @@
                accept="image/jpeg,image/png,image/webp"
                class="form-control @error('image') is-invalid @enderror">
         @error('image')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        <div class="form-text">JPEG / PNG / WebP up to 2 MB. Optional.</div>
+        <div class="form-text">JPEG / PNG / WebP hingga 2 MB. Opsional.</div>
     </div>
 </div>
 
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #f0f2f8;">
-    <a href="{{ route('admin.inventories.index') }}" class="btn btn-ghost btn-sm">Cancel</a>
+    <a href="{{ route('admin.inventories.index') }}" class="btn btn-ghost btn-sm">Batal</a>
     <button type="submit" class="btn btn-primary btn-sm">
-        <i class="bi bi-check-lg me-1"></i>{{ $submitLabel ?? 'Save' }}
+        <i class="bi bi-check-lg me-1"></i>{{ $submitLabel ?? 'Simpan' }}
     </button>
 </div>

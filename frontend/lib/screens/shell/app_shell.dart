@@ -50,22 +50,22 @@ class _AppShellState extends State<AppShell> {
     NavigationDestination(
       icon: Icon(Icons.home_outlined),
       selectedIcon: Icon(Icons.home_rounded),
-      label: 'Home',
+      label: 'Beranda',
     ),
     NavigationDestination(
       icon: Icon(Icons.inventory_2_outlined),
       selectedIcon: Icon(Icons.inventory_2_rounded),
-      label: 'Inventory',
+      label: 'Inventaris',
     ),
     NavigationDestination(
       icon: Icon(Icons.assignment_outlined),
       selectedIcon: Icon(Icons.assignment_rounded),
-      label: 'Loans',
+      label: 'Peminjaman',
     ),
     NavigationDestination(
       icon: Icon(Icons.person_outline),
       selectedIcon: Icon(Icons.person_rounded),
-      label: 'Profile',
+      label: 'Profil',
     ),
   ];
 

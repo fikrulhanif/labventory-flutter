@@ -59,13 +59,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (!mounted) return;
     if (ok) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Profile updated.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profil berhasil diperbarui.')),
+      );
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? 'Update failed.')),
+        SnackBar(content: Text(auth.errorMessage ?? 'Pembaruan gagal.')),
       );
     }
   }
@@ -82,7 +82,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         : trimmedName.characters.first.toUpperCase();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit profile')),
+      appBar: AppBar(title: const Text('Edit Profil')),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -136,7 +136,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Update your account',
+                            'Perbarui akun Anda',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 17,
@@ -145,7 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Name, email, and password.',
+                            'Nama, email, dan kata sandi.',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
@@ -159,7 +159,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
 
               const SizedBox(height: 18),
-              _SectionLabel(text: 'Personal'),
+              _SectionLabel(text: 'Informasi Pribadi'),
               const SizedBox(height: 8),
               Card(
                 child: Padding(
@@ -169,11 +169,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       TextFormField(
                         controller: _nameController,
                         decoration: InputDecoration(
-                          labelText: 'Full name',
+                          labelText: 'Nama lengkap',
                           prefixIcon: const Icon(Icons.person_outline),
                           errorText: fieldErrors['name']?.first,
                         ),
-                        validator: (v) => Validators.required(v, label: 'Name'),
+                        validator: (v) => Validators.required(v, label: 'Nama'),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -192,20 +192,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
 
               const SizedBox(height: 18),
-              _SectionLabel(text: 'Security'),
+              _SectionLabel(text: 'Keamanan'),
               const SizedBox(height: 8),
               Card(
                 child: Column(
                   children: [
                     SwitchListTile(
                       title: Text(
-                        'Change password',
+                        'Ubah kata sandi',
                         style: theme.textTheme.titleSmall,
                       ),
                       subtitle: Text(
                         _changingPassword
-                            ? 'Enter your current and new password below.'
-                            : 'Toggle to update your password.',
+                            ? 'Masukkan kata sandi saat ini dan kata sandi baru di bawah.'
+                            : 'Aktifkan untuk mengubah kata sandi.',
                         style: theme.textTheme.bodySmall,
                       ),
                       value: _changingPassword,
@@ -223,14 +223,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               controller: _currentPasswordController,
                               obscureText: !_showPassword,
                               decoration: InputDecoration(
-                                labelText: 'Current password',
+                                labelText: 'Kata sandi saat ini',
                                 prefixIcon: const Icon(Icons.lock_outline),
                                 errorText:
                                     fieldErrors['current_password']?.first,
                               ),
                               validator: (v) => Validators.required(
                                 v,
-                                label: 'Current password',
+                                label: 'Kata sandi saat ini',
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -238,7 +238,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               controller: _newPasswordController,
                               obscureText: !_showPassword,
                               decoration: InputDecoration(
-                                labelText: 'New password',
+                                labelText: 'Kata sandi baru',
                                 prefixIcon: const Icon(Icons.lock_outline),
                                 suffixIcon: IconButton(
                                   icon: Icon(
@@ -259,7 +259,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               controller: _newPasswordConfirmController,
                               obscureText: !_showPassword,
                               decoration: const InputDecoration(
-                                labelText: 'Confirm new password',
+                                labelText: 'Konfirmasi kata sandi baru',
                                 prefixIcon: Icon(Icons.lock_outline),
                               ),
                               validator: Validators.confirmPassword(
@@ -276,7 +276,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 24),
               _GradientButton(
                 isLoading: auth.isLoading,
-                label: 'Save changes',
+                label: 'Simpan Perubahan',
                 onPressed: _save,
               ),
             ],

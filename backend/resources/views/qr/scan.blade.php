@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'QR Scan')
+@section('title', 'Scan QR')
 
 @push('head')
 {{-- jsQR is a pure-JavaScript QR decoder. Served locally from public/vendor.
@@ -11,9 +11,9 @@
 @section('content')
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
         <div>
-            <h1 class="h4 mb-1 fw-semibold">QR Scan</h1>
+            <h1 class="h4 mb-1 fw-semibold">Scan QR</h1>
             <p class="text-muted small mb-0">
-                Point your camera at an inventory QR sticker to jump to its detail page.
+                Arahkan kamera ke stiker QR inventaris untuk langsung ke halaman detailnya.
             </p>
         </div>
     </div>
@@ -22,12 +22,12 @@
         <div class="col-12 col-lg-7">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h2 class="h6 fw-semibold mb-3">Camera</h2>
+                    <h2 class="h6 fw-semibold mb-3">Kamera</h2>
 
                     <div id="lv-qr-status"
                          class="alert alert-info py-2 small mb-3"
                          role="status">
-                        Click <strong>Start camera</strong> to begin scanning.
+                        Klik <strong>Mulai kamera</strong> untuk memulai pemindaian.
                     </div>
 
                     <div class="ratio ratio-4x3 bg-dark rounded mb-3 overflow-hidden position-relative">
@@ -46,13 +46,13 @@
                         <button type="button"
                                 id="lv-qr-start"
                                 class="btn btn-primary">
-                            <i class="bi bi-camera-video me-1"></i> Start camera
+                            <i class="bi bi-camera-video me-1"></i> Mulai kamera
                         </button>
                         <button type="button"
                                 id="lv-qr-stop"
                                 class="btn btn-outline-secondary"
                                 disabled>
-                            <i class="bi bi-stop-circle me-1"></i> Stop
+                            <i class="bi bi-stop-circle me-1"></i> Berhenti
                         </button>
                     </div>
 
@@ -69,9 +69,9 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h2 class="h6 fw-semibold mb-3">Manual lookup</h2>
+                    <h2 class="h6 fw-semibold mb-3">Pencarian manual</h2>
                     <p class="text-muted small">
-                        Type or paste an inventory code (e.g. <code>INV-001</code>) and submit.
+                        Ketik atau tempel kode inventaris (mis. <code>INV-001</code>) dan kirim.
                     </p>
 
                     <form id="lv-qr-form"
@@ -86,7 +86,7 @@
                                required
                                autocomplete="off">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-search me-1"></i> Lookup
+                            <i class="bi bi-search me-1"></i> Cari
                         </button>
                     </form>
                 </div>
@@ -196,11 +196,11 @@
         if (!window.isSecureContext) {
             startBtn.disabled = false;
             setStatus(
-                'Camera scanning is blocked because this page is not on a secure origin. ' +
-                'Open <code>http://localhost:8000/admin/qr/scan</code> from this laptop, ' +
-                'or whitelist the LAN origin under ' +
+                'Pemindaian kamera diblokir karena halaman ini bukan pada origin yang aman. ' +
+                'Buka <code>http://localhost:8000/admin/qr/scan</code> dari laptop ini, ' +
+                'atau daftarkan origin LAN di ' +
                 '<code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code>. ' +
-                'Manual lookup on the right always works.',
+                'Pencarian manual di sebelah kanan selalu berfungsi.',
                 'warning'
             );
             return;
@@ -209,7 +209,7 @@
         if (!('mediaDevices' in navigator) || !navigator.mediaDevices.getUserMedia) {
             startBtn.disabled = false;
             setStatus(
-                'This browser does not expose a camera API. Please use the manual lookup form.',
+                'Browser ini tidak mendukung API kamera. Silakan gunakan formulir pencarian manual.',
                 'warning'
             );
             return;
@@ -249,14 +249,14 @@
 
         if (!strategy) {
             setStatus(
-                'Camera is live, but no QR decoder loaded. ' +
-                'Use the manual lookup form on the right.',
+                'Kamera aktif, tetapi tidak ada dekoder QR yang dimuat. ' +
+                'Gunakan formulir pencarian manual di sebelah kanan.',
                 'warning'
             );
             return;
         }
 
-        setStatus('Scanning with <strong>' + strategyLabel + '</strong>… hold a QR code steady in view.', 'info');
+        setStatus('Memindai dengan <strong>' + strategyLabel + '</strong>… tahan kode QR agar terlihat stabil.', 'info');
         scanLoop();
     }
 
@@ -318,8 +318,8 @@
         // can tell scanning is actually live, not silently stuck.
         if (frameCount % 30 === 0 && strategyLabel) {
             setStatus(
-                'Scanning with <strong>' + strategyLabel + '</strong>… ' +
-                '<span class="text-muted">(' + frameCount + ' frames)</span>',
+                'Memindai dengan <strong>' + strategyLabel + '</strong>… ' +
+                '<span class="text-muted">(' + frameCount + ' frame)</span>',
                 'info'
             );
         }
@@ -327,7 +327,7 @@
         const code = await decodeOnce();
         if (code && code.length > 0) {
             submitted = true;
-            setStatus('Detected code <code>' + quoteCode(code) + '</code>. Looking up…', 'success');
+            setStatus('Kode terdeteksi <code>' + quoteCode(code) + '</code>. Mencari…', 'success');
             codeInput.value = code;
             // Stop tracks but DON'T touch `submitted` — leave it true so
             // the in-flight rAF never re-arms before form.submit() fires.

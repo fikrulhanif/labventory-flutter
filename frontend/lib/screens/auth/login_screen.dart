@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen>
       Navigator.of(context).pushReplacementNamed(AppRouter.home);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? 'Sign in failed.')),
+        SnackBar(content: Text(auth.errorMessage ?? 'Gagal masuk.')),
       );
     }
   }
@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            'Campus laboratory inventory borrowing',
+                            'Sistem peminjaman inventaris laboratorium kampus',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
@@ -184,14 +184,14 @@ class _LoginScreenState extends State<LoginScreen>
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text(
-                                  'Welcome back',
+                                  'Selamat datang kembali',
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.headlineMedium
                                       ?.copyWith(fontWeight: FontWeight.w700),
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  'Sign in with your NIM and password.',
+                                  'Masuk dengan NIM dan kata sandi Anda.',
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
@@ -213,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   obscureText: !_showPassword,
                                   textInputAction: TextInputAction.done,
                                   decoration: InputDecoration(
-                                    labelText: 'Password',
+                                    labelText: 'Kata Sandi',
                                     prefixIcon: const Icon(Icons.lock_outline),
                                     suffixIcon: IconButton(
                                       icon: Icon(
@@ -227,8 +227,10 @@ class _LoginScreenState extends State<LoginScreen>
                                     ),
                                   ),
                                   onFieldSubmitted: (_) => _submit(),
-                                  validator: (v) =>
-                                      Validators.required(v, label: 'Password'),
+                                  validator: (v) => Validators.required(
+                                    v,
+                                    label: 'Kata Sandi',
+                                  ),
                                 ),
                                 if (auth.errorMessage != null) ...[
                                   const SizedBox(height: 14),
@@ -237,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 const SizedBox(height: 24),
                                 _PrimaryButton(
                                   isLoading: auth.isLoading,
-                                  label: 'Sign in',
+                                  label: 'Masuk',
                                   onPressed: _submit,
                                 ),
                                 const SizedBox(height: 12),
@@ -245,14 +247,14 @@ class _LoginScreenState extends State<LoginScreen>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      "Don't have an account? ",
+                                      "Belum punya akun? ",
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                     TextButton(
                                       onPressed: () => Navigator.of(
                                         context,
                                       ).pushNamed(AppRouter.register),
-                                      child: const Text('Register'),
+                                      child: const Text('Daftar'),
                                     ),
                                   ],
                                 ),

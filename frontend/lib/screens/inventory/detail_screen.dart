@@ -48,7 +48,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
         _inventory = response.data;
       } else {
         _errorMessage = response.message.isEmpty
-            ? 'Failed to load inventory.'
+            ? 'Gagal memuat inventaris.'
             : response.message;
       }
     });
@@ -135,7 +135,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                           icon: available
                               ? Icons.check_circle_outline
                               : Icons.do_not_disturb_alt,
-                          label: available ? 'Available' : 'Out of stock',
+                          label: available ? 'Tersedia' : 'Stok Habis',
                           color: available
                               ? AppColors.statusReturned
                               : AppColors.statusRejected,
@@ -148,12 +148,12 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    _SectionTitle(text: 'Description'),
+                    _SectionTitle(text: 'Deskripsi'),
                     const SizedBox(height: 6),
                     Text(
                       inv.description?.isNotEmpty == true
                           ? inv.description!
-                          : 'No description provided.',
+                          : 'Tidak ada deskripsi tersedia.',
                       style: theme.textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 20),
@@ -321,19 +321,15 @@ class _InfoCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _kv(theme, 'Inventory ID', '#${inv.id}'),
+            _kv(theme, 'ID Inventaris', '#${inv.id}'),
             const SizedBox(height: 10),
-            _kv(theme, 'Code', inv.code),
+            _kv(theme, 'Kode', inv.code),
             const SizedBox(height: 10),
-            _kv(theme, 'Category', inv.category?.name ?? '—'),
+            _kv(theme, 'Kategori', inv.category?.name ?? '—'),
             const SizedBox(height: 10),
-            _kv(theme, 'Current stock', inv.stock.toString()),
+            _kv(theme, 'Stok saat ini', inv.stock.toString()),
             const SizedBox(height: 10),
-            _kv(
-              theme,
-              'Status',
-              inv.isAvailable ? 'Available' : 'Out of stock',
-            ),
+            _kv(theme, 'Status', inv.isAvailable ? 'Tersedia' : 'Stok Habis'),
           ],
         ),
       ),
@@ -393,7 +389,7 @@ class _BorrowBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    canBorrow ? 'Ready to borrow' : 'Currently unavailable',
+                    canBorrow ? 'Siap dipinjam' : 'Sedang tidak tersedia',
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: canBorrow
                           ? AppColors.statusReturned
@@ -403,8 +399,8 @@ class _BorrowBar extends StatelessWidget {
                   ),
                   Text(
                     canBorrow
-                        ? '${inventory.stock} in stock'
-                        : 'Stock will refill after returns',
+                        ? '${inventory.stock} tersedia di stok'
+                        : 'Stok akan diisi ulang setelah dikembalikan',
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
@@ -466,7 +462,7 @@ class _GradientButton extends StatelessWidget {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    'Borrow',
+                    'Pinjam',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -500,7 +496,7 @@ class _ErrorBody extends StatelessWidget {
             Icon(Icons.error_outline, size: 56, color: theme.colorScheme.error),
             const SizedBox(height: 12),
             Text(
-              message ?? 'Inventory not found.',
+              message ?? 'Inventaris tidak ditemukan.',
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),

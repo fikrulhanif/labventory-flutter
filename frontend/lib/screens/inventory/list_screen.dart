@@ -73,7 +73,7 @@ class _InventoryListScreenState extends State<InventoryListScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inventory'),
+        title: const Text('Inventaris'),
         automaticallyImplyLeading: !widget.embeddedInShell,
         actions: [
           // Grid/list view toggle
@@ -104,7 +104,7 @@ class _InventoryListScreenState extends State<InventoryListScreen>
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: AppSearchBar(
-              hint: 'Search by name or code…',
+              hint: 'Cari berdasarkan nama atau kode…',
               initialValue: provider.search,
               onChanged: provider.setSearch,
               hasActiveFilter:
@@ -121,7 +121,7 @@ class _InventoryListScreenState extends State<InventoryListScreen>
               child: Row(
                 children: [
                   Text(
-                    '${provider.items.length} item${provider.items.length == 1 ? '' : 's'}',
+                    '${provider.items.length} barang',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -129,7 +129,7 @@ class _InventoryListScreenState extends State<InventoryListScreen>
                   if (provider.hasNextPage) ...[
                     const SizedBox(width: 4),
                     Text(
-                      '(more available)',
+                      '(lebih banyak tersedia)',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -171,7 +171,7 @@ class _FilterRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         children: [
           _StyledChip(
-            label: 'Available',
+            label: 'Tersedia',
             selected: provider.statusFilter == 'available',
             color: AppColors.statusReturned,
             icon: Icons.check_circle_outline,
@@ -179,7 +179,7 @@ class _FilterRow extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           _StyledChip(
-            label: 'Out of stock',
+            label: 'Stok Habis',
             selected: provider.statusFilter == 'out_of_stock',
             color: AppColors.statusRejected,
             icon: Icons.do_not_disturb_alt_outlined,
@@ -201,7 +201,7 @@ class _FilterRow extends StatelessWidget {
           if (hasFilter) ...[
             const SizedBox(width: 6),
             ActionChip(
-              label: const Text('Reset'),
+              label: const Text('Atur Ulang'),
               avatar: const Icon(Icons.close, size: 14),
               onPressed: provider.clearFilters,
             ),
@@ -291,12 +291,12 @@ class _Body extends StatelessWidget {
     if (provider.state == InventoryListState.error && provider.items.isEmpty) {
       return EmptyState(
         icon: Icons.error_outline,
-        title: 'Could not load inventory',
+        title: 'Gagal memuat inventaris',
         message: provider.errorMessage,
         tone: Theme.of(context).colorScheme.error,
         action: FilledButton(
           onPressed: provider.refresh,
-          child: const Text('Try again'),
+          child: const Text('Coba Lagi'),
         ),
       );
     }
@@ -304,12 +304,12 @@ class _Body extends StatelessWidget {
     if (provider.items.isEmpty) {
       return EmptyState(
         icon: Icons.inventory_2_outlined,
-        title: 'No items match',
-        message: 'Try clearing the filters or use a different keyword.',
+        title: 'Tidak ada barang sesuai',
+        message: 'Coba hapus filter atau gunakan kata kunci lain.',
         action: OutlinedButton.icon(
           icon: const Icon(Icons.clear_all),
           onPressed: provider.clearFilters,
-          label: const Text('Reset filters'),
+          label: const Text('Atur Ulang Filter'),
         ),
       );
     }

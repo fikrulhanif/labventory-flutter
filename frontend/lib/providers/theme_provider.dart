@@ -58,8 +58,8 @@ class ThemeProvider extends ChangeNotifier {
   };
 
   String get label => switch (_mode) {
-    ThemeMode.system => 'Auto (system)',
-    ThemeMode.light => 'Light',
-    ThemeMode.dark => 'Dark',
+    ThemeMode.system => 'Otomatis (sistem)',
+    ThemeMode.light => 'Terang',
+    ThemeMode.dark => 'Gelap',
   };
 }

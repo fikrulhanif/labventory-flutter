@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Sign in') · Labventory Admin</title>
+    <title>@yield('title', 'Masuk') · Labventory Admin</title>
     {{-- All assets served locally — no CDN dependency --}}
     <link href="/vendor/fonts/inter.css" rel="stylesheet">
     <link href="/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
@@ -199,14 +199,14 @@
                  onerror="this.style.display='none'">
             <div>
                 <div class="auth-logo-name">Labventory</div>
-                <div class="auth-logo-tag">Admin Portal</div>
+                <div class="auth-logo-tag">Portal Admin</div>
             </div>
         </div>
         <div class="auth-divider"></div>
 
         @yield('content')
 
-        <p class="auth-footer">&copy; {{ now()->year }} Labventory · Campus Lab Inventory System</p>
+        <p class="auth-footer">&copy; {{ now()->year }} Labventory · Sistem Inventaris Lab Kampus</p>
     </div>
 </div>
 </body>

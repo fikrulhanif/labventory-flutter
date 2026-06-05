@@ -138,8 +138,8 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
                   icon: Icons.photo_camera_outlined,
                   color: AppColors.primary,
                 ),
-                title: const Text('Take a photo'),
-                subtitle: const Text('Use the camera to snap your KTM'),
+                title: const Text('Ambil foto'),
+                subtitle: const Text('Gunakan kamera untuk memfoto KTM'),
                 onTap: () {
                   Navigator.of(sheetCtx).pop();
                   _pickKtmFromCamera();
@@ -150,8 +150,8 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
                   icon: Icons.photo_library_outlined,
                   color: AppColors.statusBorrowed,
                 ),
-                title: const Text('Pick from gallery'),
-                subtitle: const Text('Choose an existing photo'),
+                title: const Text('Pilih dari galeri'),
+                subtitle: const Text('Pilih foto yang sudah ada'),
                 onTap: () {
                   Navigator.of(sheetCtx).pop();
                   _pickKtmFromGallery();
@@ -162,8 +162,8 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
                   icon: Icons.picture_as_pdf_outlined,
                   color: AppColors.danger,
                 ),
-                title: const Text('Pick a PDF'),
-                subtitle: const Text('Use a scanned PDF instead'),
+                title: const Text('Pilih PDF'),
+                subtitle: const Text('Gunakan PDF hasil scan'),
                 onTap: () {
                   Navigator.of(sheetCtx).pop();
                   _pickKtmAsPdf();
@@ -181,13 +181,13 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_borrowDate == null || _returnDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pick borrow and return dates.')),
+        const SnackBar(content: Text('Pilih tanggal pinjam dan kembali.')),
       );
       return;
     }
     if (_document == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Attach your KTM (photo or PDF).')),
+        const SnackBar(content: Text('Lampirkan KTM Anda (foto atau PDF).')),
       );
       return;
     }
@@ -205,12 +205,15 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
     if (!mounted) return;
 
     if (loan != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Loan request submitted.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Permintaan peminjaman berhasil dikirim.'),
+        ),
+      );
       Navigator.of(context).pushReplacementNamed(AppRouter.loanHistory);
     } else {
-      final msg = loanProvider.submitError ?? 'Could not submit loan request.';
+      final msg =
+          loanProvider.submitError ?? 'Gagal mengajukan permintaan peminjaman.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
@@ -223,9 +226,9 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
 
     if (inv == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Borrow inventory')),
+        appBar: AppBar(title: const Text('Pinjam Inventaris')),
         body: const Center(
-          child: Text('No inventory selected. Pick an item from the catalog.'),
+          child: Text('Tidak ada inventaris dipilih. Pilih alat dari katalog.'),
         ),
       );
     }
@@ -233,7 +236,7 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
     final fieldErrors = loanProvider.validationErrors;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Borrow inventory')),
+      appBar: AppBar(title: const Text('Pinjam Inventaris')),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -300,7 +303,7 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
               ),
 
               const SizedBox(height: 18),
-              _SectionLabel(text: 'Borrow window'),
+              _SectionLabel(text: 'Periode Peminjaman'),
               const SizedBox(height: 8),
               Card(
                 child: Padding(
@@ -308,7 +311,7 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
                   child: Column(
                     children: [
                       _DateField(
-                        label: 'Borrow date',
+                        label: 'Tanggal Pinjam',
                         value: _borrowDate,
                         fmt: _dateFmt,
                         errorText: fieldErrors['borrow_date']?.first,
@@ -317,7 +320,7 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
                       ),
                       const SizedBox(height: 12),
                       _DateField(
-                        label: 'Return date',
+                        label: 'Tanggal Kembali',
                         value: _returnDate,
                         fmt: _dateFmt,
                         errorText: fieldErrors['return_date']?.first,
@@ -330,7 +333,7 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
               ),
 
               const SizedBox(height: 18),
-              _SectionLabel(text: 'KTM document'),
+              _SectionLabel(text: 'Dokumen KTM'),
               const SizedBox(height: 8),
               Card(
                 child: Padding(
@@ -339,7 +342,7 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Attach a clear photo of your KTM, or upload a scanned PDF (max 2 MB).',
+                        'Lampirkan foto KTM yang jelas, atau upload PDF hasil scan (maks. 2 MB).',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -388,11 +391,11 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Tap to attach KTM',
+                                        'Ketuk untuk lampirkan KTM',
                                         style: theme.textTheme.titleSmall,
                                       ),
                                       Text(
-                                        'JPG, PNG, or PDF',
+                                        'JPG, PNG, atau PDF',
                                         style: theme.textTheme.bodySmall,
                                       ),
                                     ],
@@ -430,14 +433,14 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  _documentFilename ?? 'KTM attached',
+                                  _documentFilename ?? 'KTM terlampir',
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.titleSmall,
                                 ),
                               ),
                               TextButton(
                                 onPressed: _showDocumentPicker,
-                                child: const Text('Change'),
+                                child: const Text('Ganti'),
                               ),
                             ],
                           ),
@@ -455,12 +458,12 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
               ),
 
               const SizedBox(height: 18),
-              _SectionLabel(text: 'Notes (optional)'),
+              _SectionLabel(text: 'Catatan (opsional)'),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _notesController,
                 decoration: InputDecoration(
-                  hintText: 'Anything the lab should know?',
+                  hintText: 'Ada yang perlu diketahui lab?',
                   prefixIcon: const Icon(Icons.notes_outlined),
                   errorText: fieldErrors['notes']?.first,
                 ),
@@ -470,7 +473,7 @@ class _LoanCreateScreenState extends State<LoanCreateScreen> {
               const SizedBox(height: 24),
               _GradientButton(
                 isLoading: loanProvider.isSubmitting,
-                label: 'Submit loan request',
+                label: 'Ajukan Peminjaman',
                 onPressed: _submit,
               ),
             ],
@@ -549,7 +552,7 @@ class _DateField extends StatelessWidget {
           suffixIcon: const Icon(Icons.calendar_month_outlined),
         ),
         child: Text(
-          value == null ? 'Select a date' : fmt.format(value!),
+          value == null ? 'Pilih tanggal' : fmt.format(value!),
           style: TextStyle(
             color: value == null ? Theme.of(context).hintColor : null,
             fontWeight: FontWeight.w600,

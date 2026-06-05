@@ -30,12 +30,12 @@ enum LoanStatus {
 
   /// Display label for the status chip widget (Task 17.5).
   String get label => switch (this) {
-    LoanStatus.pending => 'Pending',
-    LoanStatus.approved => 'Approved',
-    LoanStatus.rejected => 'Rejected',
-    LoanStatus.borrowed => 'Borrowed',
-    LoanStatus.returned => 'Returned',
-    LoanStatus.unknown => '—',
+    LoanStatus.pending => 'Menunggu',
+    LoanStatus.approved => 'Disetujui',
+    LoanStatus.rejected => 'Ditolak',
+    LoanStatus.borrowed => 'Dipinjam',
+    LoanStatus.returned => 'Dikembalikan',
+    LoanStatus.unknown => 'Tidak Diketahui',
   };
 }
 

@@ -1,8 +1,8 @@
 @extends('reports.preview.layout')
 
-@section('title', 'Currently Borrowed Inventory')
-@section('toolbar-meta', 'Generated ' . $generatedAt->toDayDateTimeString() . ' UTC')
-@section('report-subtitle', 'Snapshot of items currently checked out of the lab.')
+@section('title', 'Inventaris Sedang Dipinjam')
+@section('toolbar-meta', 'Dibuat ' . $generatedAt->toDayDateTimeString() . ' UTC')
+@section('report-subtitle', 'Snapshot barang yang sedang dipinjam dari lab.')
 @section('download-url', route('admin.reports.borrowed'))
 
 @section('content')
@@ -10,30 +10,30 @@
         <div class="meta-chip">
             <div class="meta-chip-icon" style="background:#6d28d9;"><i class="bi bi-box-arrow-right"></i></div>
             <div>
-                <div class="meta-chip-label">Items out</div>
+                <div class="meta-chip-label">Barang keluar</div>
                 <div class="meta-chip-value">{{ number_format($totalItems) }}</div>
             </div>
         </div>
         <div class="meta-chip">
             <div class="meta-chip-icon" style="background:#0ea5e9;"><i class="bi bi-arrow-left-right"></i></div>
             <div>
-                <div class="meta-chip-label">Active loans</div>
+                <div class="meta-chip-label">Pinjaman aktif</div>
                 <div class="meta-chip-value">{{ number_format($totalBorrowed) }}</div>
             </div>
         </div>
     </div>
 
-    <div class="section-title"><i class="bi bi-box-arrow-right" style="color:#6d28d9;"></i>Checked out items</div>
+    <div class="section-title"><i class="bi bi-box-arrow-right" style="color:#6d28d9;"></i>Barang sedang dipinjam</div>
 
     <table class="report-table">
         <thead>
             <tr>
-                <th style="width:12%;">Code</th>
-                <th style="width:20%;">Item</th>
-                <th style="width:14%;">Category</th>
-                <th class="num" style="width:8%;">Stock</th>
-                <th class="num" style="width:9%;">Out</th>
-                <th>Borrowers</th>
+                <th style="width:12%;">Kode</th>
+                <th style="width:20%;">Alat</th>
+                <th style="width:14%;">Kategori</th>
+                <th class="num" style="width:8%;">Stok</th>
+                <th class="num" style="width:9%;">Keluar</th>
+                <th>Peminjam</th>
             </tr>
         </thead>
         <tbody>
@@ -62,7 +62,7 @@
                     <td colspan="6">
                         <div class="empty-state">
                             <i class="bi bi-check2-all"></i>
-                            <p>No inventory is currently borrowed.</p>
+                            <p>Tidak ada inventaris yang sedang dipinjam.</p>
                         </div>
                     </td>
                 </tr>
