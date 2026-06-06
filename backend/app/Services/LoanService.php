@@ -7,6 +7,7 @@ use App\Models\Inventory;
 use App\Models\Loan;
 use App\Models\LoanStatusHistory;
 use App\Models\User;
+use App\Services\NotificationService;
 use App\Support\LoanStateMachine;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,6 +32,11 @@ class LoanService
     public const DEFAULT_PAGE_SIZE = 15;
 
     public const MAX_PAGE_SIZE = 50;
+
+    public function __construct(
+        private readonly NotificationService $notifications = new NotificationService(),
+    ) {
+    }
 
     /**
      * Create a new loan record for the authenticated student.
@@ -80,7 +86,12 @@ class LoanService
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            return $loan->fresh(['user', 'inventory.category']);
+            $freshLoan = $loan->fresh(['user', 'inventory.category']);
+
+            // Notify the student that their request was received.
+            $this->notifications->notifyLoanCreated($freshLoan);
+
+            return $freshLoan;
         });
     }
 
@@ -137,7 +148,10 @@ class LoanService
 
             $this->appendHistory($loan, $previous, Loan::STATUS_APPROVED, $actor, $note);
 
-            return $loan->fresh(['user', 'inventory.category']);
+            $freshLoan = $loan->fresh(['user', 'inventory.category']);
+            $this->notifications->notifyLoanApproved($freshLoan);
+
+            return $freshLoan;
         });
     }
 
@@ -159,7 +173,10 @@ class LoanService
 
             $this->appendHistory($loan, $previous, Loan::STATUS_REJECTED, $actor, $reason);
 
-            return $loan->fresh(['user', 'inventory.category']);
+            $freshLoan = $loan->fresh(['user', 'inventory.category']);
+            $this->notifications->notifyLoanRejected($freshLoan);
+
+            return $freshLoan;
         });
     }
 
@@ -196,7 +213,10 @@ class LoanService
 
             $this->appendHistory($loan, $previous, Loan::STATUS_BORROWED, $actor, $note);
 
-            return $loan->fresh(['user', 'inventory.category']);
+            $freshLoan = $loan->fresh(['user', 'inventory.category']);
+            $this->notifications->notifyLoanBorrowed($freshLoan);
+
+            return $freshLoan;
         });
     }
 
@@ -227,7 +247,10 @@ class LoanService
 
             $this->appendHistory($loan, $previous, Loan::STATUS_RETURNED, $actor, $note);
 
-            return $loan->fresh(['user', 'inventory.category']);
+            $freshLoan = $loan->fresh(['user', 'inventory.category']);
+            $this->notifications->notifyLoanReturned($freshLoan);
+
+            return $freshLoan;
         });
     }
 

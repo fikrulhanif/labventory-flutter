@@ -8,6 +8,7 @@ import 'providers/admin_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/inventory_provider.dart';
 import 'providers/loan_provider.dart';
+import 'providers/notification_provider.dart';
 import 'providers/theme_provider.dart';
 import 'routes/app_router.dart';
 import 'services/dio_client.dart';
@@ -33,6 +34,7 @@ class LabventoryApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
         ChangeNotifierProvider(create: (_) => LoanProvider()),
         ChangeNotifierProvider(create: (_) => AdminProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: Builder(
         builder: (context) {

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../constants/app_colors.dart';
 import '../../providers/admin_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../routes/app_router.dart';
 
 /// Staff profile screen. Mirrors the student profile but without the
@@ -209,6 +210,7 @@ class AdminProfileScreen extends StatelessWidget {
 
     final auth = context.read<AuthProvider>();
     final admin = context.read<AdminProvider>();
+    final notifs = context.read<NotificationProvider>();
 
     // Navigate FIRST so the admin widget tree is torn down before
     // AuthProvider flips `user` to null.
@@ -218,5 +220,6 @@ class AdminProfileScreen extends StatelessWidget {
 
     await auth.logout();
     admin.reset();
+    notifs.clearAll();
   }
 }

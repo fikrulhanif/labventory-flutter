@@ -9,6 +9,7 @@ import '../screens/inventory/list_screen.dart';
 import '../screens/loan/create_screen.dart';
 import '../screens/loan/detail_screen.dart';
 import '../screens/loan/history_screen.dart';
+import '../screens/notifications/notification_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/shell/app_shell.dart';
@@ -39,6 +40,9 @@ class AppRouter {
   static const String adminHome = '/admin';
   static const String adminLoanAction = '/admin/loan-action';
 
+  // Notification center
+  static const String notifications = '/notifications';
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
@@ -67,6 +71,8 @@ class AppRouter {
         return _build(settings, const AdminShell());
       case adminLoanAction:
         return _build(settings, const AdminLoanActionScreen());
+      case notifications:
+        return _build(settings, const NotificationScreen());
       default:
         return _build(
           settings,

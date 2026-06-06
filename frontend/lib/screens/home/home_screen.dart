@@ -4,11 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/app_colors.dart';
+import '../../models/app_notification.dart';
 import '../../models/inventory.dart';
 import '../../models/loan.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/inventory_provider.dart';
 import '../../providers/loan_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../routes/app_router.dart';
 import '../../widgets/loan_status_chip.dart';
 import '../shell/app_shell.dart';
@@ -46,7 +48,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _refresh() async {
     final inv = context.read<InventoryProvider>();
     final loans = context.read<LoanProvider>();
-    await Future.wait([inv.refresh(), loans.loadHistory(refresh: true)]);
+    final notifs = context.read<NotificationProvider>();
+    await Future.wait([
+      inv.refresh(),
+      loans.loadHistory(refresh: true),
+      notifs.refreshUnreadCount(),
+    ]);
   }
 
   void _switchTab(int tabIndex) {
@@ -77,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final auth = context.watch<AuthProvider>();
     final inv = context.watch<InventoryProvider>();
     final loans = context.watch<LoanProvider>();
+    final notifs = context.watch<NotificationProvider>();
     final theme = Theme.of(context);
     final user = auth.user;
 
@@ -114,7 +122,12 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.zero,
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            _HeroHeader(userName: user.name, userNim: user.nim),
+            _HeroHeader(
+              userName: user.name,
+              userNim: user.nim,
+              unreadCount: notifs.unreadCount,
+              onNotificationTap: () => _switchTab(3),
+            ),
             // Stat strip overlaps the bottom edge of the hero by a
             // small amount so the rounded gradient meets the card
             // visually but the strip's content stays comfortably
@@ -171,6 +184,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 16),
                   _SectionHeader(
+                    title: 'Notifikasi Terbaru',
+                    trailingLabel: notifs.items.isEmpty ? null : 'Lihat semua',
+                    onTrailing: notifs.items.isEmpty
+                        ? null
+                        : () => _switchTab(3),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    child: _RecentNotifications(
+                      notifications: notifs.items.take(3).toList(),
+                      onSeeAll: () => _switchTab(3),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionHeader(
                     title: 'Aktivitas Terbaru',
                     trailingLabel: loans.items.isEmpty ? null : 'Lihat semua',
                     onTrailing: loans.items.isEmpty
@@ -200,10 +228,17 @@ class _HomeScreenState extends State<HomeScreen> {
 // ---------------------------------------------------------------------
 
 class _HeroHeader extends StatelessWidget {
-  const _HeroHeader({required this.userName, required this.userNim});
+  const _HeroHeader({
+    required this.userName,
+    required this.userNim,
+    required this.unreadCount,
+    required this.onNotificationTap,
+  });
 
   final String userName;
   final String? userNim;
+  final int unreadCount;
+  final VoidCallback onNotificationTap;
 
   @override
   Widget build(BuildContext context) {
@@ -267,16 +302,23 @@ class _HeroHeader extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.notifications_none,
-                        color: Colors.white,
-                        size: 18,
+                    GestureDetector(
+                      onTap: onNotificationTap,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Badge(
+                          isLabelVisible: unreadCount > 0,
+                          label: Text(unreadCount > 9 ? '9+' : '$unreadCount'),
+                          child: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -1204,5 +1246,165 @@ class _DueSoonBanner extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ---------------------------------------------------------------------
+// Recent notifications mini-section on home
+// ---------------------------------------------------------------------
+
+class _RecentNotifications extends StatelessWidget {
+  const _RecentNotifications({
+    required this.notifications,
+    required this.onSeeAll,
+  });
+
+  final List<AppNotification> notifications;
+  final VoidCallback onSeeAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (notifications.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Icon(
+                Icons.notifications_none_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Belum ada notifikasi',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      child: Column(
+        children: [
+          ...notifications.asMap().entries.map((entry) {
+            final i = entry.key;
+            final notif = entry.value;
+            final meta = _notifMeta(notif.type);
+
+            return Column(
+              children: [
+                InkWell(
+                  onTap: onSeeAll,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: meta.accent.withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(meta.icon, color: meta.accent, size: 18),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                notif.title,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: notif.isRead
+                                      ? FontWeight.w500
+                                      : FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _relativeTime(notif.createdAt),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (!notif.isRead)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: meta.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (i < notifications.length - 1)
+                  Divider(
+                    height: 1,
+                    indent: 64,
+                    endIndent: 16,
+                    color: theme.colorScheme.outlineVariant,
+                  ),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  static ({IconData icon, Color accent}) _notifMeta(String type) {
+    return switch (type) {
+      AppNotification.typeLoanCreated => (
+        icon: Icons.pending_actions_rounded,
+        accent: AppColors.statusPending,
+      ),
+      AppNotification.typeLoanApproved => (
+        icon: Icons.check_circle_rounded,
+        accent: AppColors.statusApproved,
+      ),
+      AppNotification.typeLoanRejected => (
+        icon: Icons.cancel_rounded,
+        accent: AppColors.statusRejected,
+      ),
+      AppNotification.typeLoanBorrowed => (
+        icon: Icons.outbox_rounded,
+        accent: AppColors.statusBorrowed,
+      ),
+      AppNotification.typeLoanReturned => (
+        icon: Icons.move_to_inbox_rounded,
+        accent: AppColors.statusReturned,
+      ),
+      _ => (icon: Icons.notifications_rounded, accent: AppColors.info),
+    };
+  }
+
+  static String _relativeTime(DateTime? dt) {
+    if (dt == null) return '';
+    final diff = DateTime.now().toUtc().difference(dt.toUtc());
+    if (diff.inSeconds < 60) return 'Baru saja';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} menit lalu';
+    if (diff.inHours < 24) return '${diff.inHours} jam lalu';
+    if (diff.inDays < 7) return '${diff.inDays} hari lalu';
+    return '${(diff.inDays / 7).floor()} minggu lalu';
   }
 }

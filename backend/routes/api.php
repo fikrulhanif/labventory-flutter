@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\LoanController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Admin\AdminInventoryController;
 use App\Http\Controllers\Api\Admin\AdminLoanController;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +61,17 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/loans/{id}', [LoanController::class, 'show'])
             ->whereNumber('id')
             ->name('api.loans.show');
+    });
+
+    // ── Notification center (in-app, database-backed, no push/FCM) ──
+    // Accessible to all authenticated users (students and staff).
+    Route::prefix('notifications')->name('api.notifications.')->group(function (): void {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
+        Route::post('/{id}/read', [NotificationController::class, 'markRead'])
+            ->whereNumber('id')
+            ->name('read');
     });
 });
 

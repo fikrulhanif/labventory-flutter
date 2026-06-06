@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/loan_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../routes/app_router.dart';
 import '../../models/loan.dart';
@@ -237,6 +238,7 @@ class ProfileScreen extends StatelessWidget {
 
     final auth = context.read<AuthProvider>();
     final loans = context.read<LoanProvider>();
+    final notifs = context.read<NotificationProvider>();
 
     // Navigate FIRST so the home/profile/loan widget tree is torn
     // down before AuthProvider flips `user` to null. Otherwise the
@@ -250,6 +252,7 @@ class ProfileScreen extends StatelessWidget {
     // navigation thread; the user is already on /login.
     await auth.logout();
     loans.clearAll();
+    notifs.clearAll();
   }
 
   void _showAbout(BuildContext context, {bool about = false}) {

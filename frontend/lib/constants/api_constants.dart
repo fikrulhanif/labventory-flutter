@@ -48,4 +48,11 @@ class ApiConstants {
 
   /// `POST /admin/loans/{id}/return` — borrowed -> returned.
   static String adminLoanReturn(int id) => '/admin/loans/$id/return';
+
+  // ── Notification center ────────────────────────────────────────
+
+  static const String notifications = '/notifications';
+  static const String notificationsUnreadCount = '/notifications/unread-count';
+  static const String notificationsReadAll = '/notifications/read-all';
+  static String notificationRead(int id) => '/notifications/$id/read';
 }
