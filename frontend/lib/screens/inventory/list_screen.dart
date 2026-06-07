@@ -73,7 +73,28 @@ class _InventoryListScreenState extends State<InventoryListScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inventaris'),
+        title: Row(
+          children: [
+            const Text('Inventaris'),
+            const SizedBox(width: 10),
+            if (provider.items.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '${provider.items.length}${provider.hasNextPage ? '+' : ''}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+          ],
+        ),
         automaticallyImplyLeading: !widget.embeddedInShell,
         actions: [
           // Grid/list view toggle
@@ -114,30 +135,6 @@ class _InventoryListScreenState extends State<InventoryListScreen>
           const SizedBox(height: 8),
           _FilterRow(provider: provider),
           const SizedBox(height: 4),
-          // Item count banner
-          if (provider.items.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-              child: Row(
-                children: [
-                  Text(
-                    '${provider.items.length} barang',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  if (provider.hasNextPage) ...[
-                    const SizedBox(width: 4),
-                    Text(
-                      '(lebih banyak tersedia)',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
           Expanded(
             child: _Body(
               provider: provider,
