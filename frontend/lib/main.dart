@@ -15,10 +15,7 @@ import 'services/dio_client.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Build the Dio singleton early so AuthInterceptor + ResponseInterceptor
-  // are wired before any service request fires.
   DioClient.instance;
-
   runApp(const LabventoryApp());
 }
 

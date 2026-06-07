@@ -240,76 +240,31 @@ class _HeroHeaderState extends State<_HeroHeader>
     with TickerProviderStateMixin {
   late final AnimationController _blobCtrl;
   late final AnimationController _entranceCtrl;
-
-  // Entrance animations
-  late final Animation<double> _greetingFade;
-  late final Animation<Offset> _greetingSlide;
-  late final Animation<double> _nameFade;
-  late final Animation<Offset> _nameSlide;
-  late final Animation<double> _nimFade;
-  late final Animation<Offset> _nimSlide;
-  late final Animation<double> _dateRowFade;
+  late final Animation<double> _contentFade;
+  late final Animation<Offset> _contentSlide;
 
   @override
   void initState() {
     super.initState();
 
-    // Blob rotation — 30 s continuous loop
     _blobCtrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 30),
     )..repeat();
 
-    // Entrance — 600 ms total
     _entranceCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 550),
     )..forward();
 
-    // date row — delay 0ms
-    _dateRowFade = CurvedAnimation(
+    _contentFade = CurvedAnimation(
       parent: _entranceCtrl,
-      curve: const Interval(0.0, 0.55, curve: Curves.easeOut),
+      curve: Curves.easeOut,
     );
-
-    // greeting — delay 0ms
-    _greetingFade = CurvedAnimation(
-      parent: _entranceCtrl,
-      curve: const Interval(0.0, 0.60, curve: Curves.easeOut),
-    );
-    _greetingSlide =
-        Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _entranceCtrl,
-            curve: const Interval(0.0, 0.60, curve: Curves.easeOut),
-          ),
-        );
-
-    // name — delay ~100ms (start 0.14)
-    _nameFade = CurvedAnimation(
-      parent: _entranceCtrl,
-      curve: const Interval(0.14, 0.72, curve: Curves.easeOut),
-    );
-    _nameSlide = Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _entranceCtrl,
-            curve: const Interval(0.14, 0.72, curve: Curves.easeOut),
-          ),
-        );
-
-    // NIM — delay ~200ms (start 0.28)
-    _nimFade = CurvedAnimation(
-      parent: _entranceCtrl,
-      curve: const Interval(0.28, 0.85, curve: Curves.easeOut),
-    );
-    _nimSlide = Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _entranceCtrl,
-            curve: const Interval(0.28, 0.85, curve: Curves.easeOut),
-          ),
-        );
+    _contentSlide = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _entranceCtrl, curve: Curves.easeOut));
   }
 
   @override
@@ -319,32 +274,41 @@ class _HeroHeaderState extends State<_HeroHeader>
     super.dispose();
   }
 
-  static String _greeting() {
+  static String _greetingWord() {
     final h = DateTime.now().hour;
-    if (h < 11) return 'Selamat Pagi,';
-    if (h < 15) return 'Selamat Siang,';
-    if (h < 19) return 'Selamat Sore,';
-    return 'Selamat Malam,';
+    if (h < 11) return 'Pagi';
+    if (h < 15) return 'Siang';
+    if (h < 19) return 'Sore';
+    return 'Malam';
   }
 
   static String _displayName(String full) {
     final trimmed = full.trim();
     if (trimmed.isEmpty) return 'Pengguna';
+    // Title-case full name so all words show
     return trimmed
         .split(RegExp(r'\s+'))
         .map((w) => w.isEmpty ? w : w[0].toUpperCase() + w.substring(1))
         .join(' ');
   }
 
+  static String _initial(String full) {
+    final trimmed = full.trim();
+    if (trimmed.isEmpty) return '?';
+    return trimmed.characters.first.toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final mqTop = MediaQuery.of(context).padding.top;
-    final greeting = _greeting();
-    final dateLabel = DateFormat('EEEE, d MMMM').format(DateTime.now());
     final displayName = _displayName(widget.userName);
+    final initial = _initial(widget.userName);
+    final word = _greetingWord();
+    final dateLabel = DateFormat('EEEE, d MMMM').format(DateTime.now());
 
     return Container(
-      padding: EdgeInsets.fromLTRB(22, mqTop + 20, 22, 52),
+      // Compact: reduced padding — more space for content below
+      padding: EdgeInsets.fromLTRB(20, mqTop + 12, 20, 48),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.gradientStart, AppColors.gradientEnd],
@@ -352,202 +316,210 @@ class _HeroHeaderState extends State<_HeroHeader>
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(36),
-          bottomRight: Radius.circular(36),
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Animated background blobs
+          // Animated blobs
           Positioned(
-            right: -50,
+            right: -40,
             top: -10,
             child: AnimatedBuilder(
               animation: _blobCtrl,
               builder: (context, child) {
-                final angle = _blobCtrl.value * 2 * math.pi;
-                final dy = math.sin(angle) * 12;
-                final dx = math.cos(angle * 0.7) * 8;
+                final a = _blobCtrl.value * 2 * math.pi;
                 return Transform.translate(
-                  offset: Offset(dx, dy),
+                  offset: Offset(math.cos(a * 0.7) * 8, math.sin(a) * 10),
                   child: RotationTransition(turns: _blobCtrl, child: child),
                 );
               },
-              child: _Blob(size: 150, color: AppColors.heroBlobA),
+              child: _Blob(size: 130, color: AppColors.heroBlobA),
             ),
           ),
           Positioned(
-            left: -60,
-            bottom: -20,
+            left: -50,
+            bottom: -16,
             child: AnimatedBuilder(
               animation: _blobCtrl,
               builder: (context, child) {
-                final angle = _blobCtrl.value * 2 * math.pi;
-                final dy = math.sin(angle + math.pi) * 10;
-                final dx = math.cos(angle * 0.5 + math.pi) * 6;
+                final a = _blobCtrl.value * 2 * math.pi;
                 return Transform.translate(
-                  offset: Offset(dx, dy),
+                  offset: Offset(
+                    math.cos(a * 0.5 + math.pi) * 6,
+                    math.sin(a + math.pi) * 8,
+                  ),
                   child: RotationTransition(
-                    // counter-clockwise: negate turns via ReverseAnimation
                     turns: ReverseAnimation(_blobCtrl),
                     child: child,
                   ),
                 );
               },
-              child: _Blob(size: 130, color: AppColors.heroBlobB),
+              child: _Blob(size: 110, color: AppColors.heroBlobB),
             ),
           ),
 
-          // Shimmer diagonal line (CustomPainter)
+          // Shimmer
           Positioned.fill(
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(36),
-                bottomRight: Radius.circular(36),
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
               child: CustomPaint(painter: _ShimmerDiagonalPainter()),
             ),
           ),
 
-          // Content
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top row: date + notification bell
-              FadeTransition(
-                opacity: _dateRowFade,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
+          // ── Content ─────────────────────────────────────────
+          FadeTransition(
+            opacity: _contentFade,
+            child: SlideTransition(
+              position: _contentSlide,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top bar: date + notification bell
+                  Row(
+                    children: [
+                      Text(
                         dateLabel,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.1,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: widget.onNotificationTap,
-                      child: Container(
-                        width: 38,
-                        height: 38,
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: widget.onNotificationTap,
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.22),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Badge(
+                            isLabelVisible: widget.unreadCount > 0,
+                            label: Text(
+                              widget.unreadCount > 9
+                                  ? '9+'
+                                  : '${widget.unreadCount}',
+                            ),
+                            child: const Icon(
+                              Icons.notifications_outlined,
+                              color: Colors.white,
+                              size: 17,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Avatar + identity row (compact horizontal)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Avatar circle
+                      Container(
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.white.withValues(alpha: 0.20),
+                          shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: Colors.white.withValues(alpha: 0.35),
+                            width: 1.5,
                           ),
                         ),
                         alignment: Alignment.center,
-                        child: Badge(
-                          isLabelVisible: widget.unreadCount > 0,
-                          label: Text(
-                            widget.unreadCount > 9
-                                ? '9+'
-                                : '${widget.unreadCount}',
-                          ),
-                          child: const Icon(
-                            Icons.notifications_outlined,
+                        child: Text(
+                          initial,
+                          style: const TextStyle(
                             color: Colors.white,
-                            size: 18,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
+                      const SizedBox(width: 14),
 
-              // Greeting
-              FadeTransition(
-                opacity: _greetingFade,
-                child: SlideTransition(
-                  position: _greetingSlide,
-                  child: Text(
-                    greeting,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 3),
-
-              // Name
-              FadeTransition(
-                opacity: _nameFade,
-                child: SlideTransition(
-                  position: _nameSlide,
-                  child: Text(
-                    displayName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      height: 1.15,
-                      letterSpacing: -0.5,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // NIM badge
-              if (widget.userNim != null)
-                FadeTransition(
-                  opacity: _nimFade,
-                  child: SlideTransition(
-                    position: _nimSlide,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.30),
-                          ),
-                        ),
-                        child: Row(
+                      // Name + greeting (tight vertical stack)
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.badge_outlined,
-                              color: Colors.white70,
-                              size: 13,
+                            // Greeting line — small, muted
+                            Row(
+                              children: [
+                                Text(
+                                  'Selamat $word,',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 5),
+                            const SizedBox(height: 2),
+                            // First name — prominent but not oversized
                             Text(
-                              widget.userNim!,
+                              displayName,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.4,
+                                height: 1.15,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                            if (widget.userNim != null) ...[
+                              const SizedBox(height: 4),
+                              // NIM inline — no separate row
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.badge_outlined,
+                                    color: Colors.white54,
+                                    size: 11,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    widget.userNim!,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-            ],
+                ],
+              ),
+            ),
           ),
         ],
       ),

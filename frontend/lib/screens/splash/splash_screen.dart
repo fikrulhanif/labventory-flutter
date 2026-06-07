@@ -17,241 +17,258 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _logoCtrl;
-  late final AnimationController _textCtrl;
-  late final AnimationController _particleCtrl;
-  late final AnimationController _pulseCtrl;
+  late final AnimationController _spinCtrl;
+  late final AnimationController _enterCtrl;
+
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoFade;
+  late final Animation<double> _ringFade;
+  late final Animation<Offset> _textSlide;
+  late final Animation<double> _textFade;
+  late final Animation<double> _subtitleFade;
+  late final Animation<double> _loaderFade;
+
+  String? _nextRoute;
+  static const _minMs = 2000;
 
   @override
   void initState() {
     super.initState();
 
-    _logoCtrl = AnimationController(
+    _spinCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat();
+
+    _enterCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..forward();
 
-    _textCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
+    _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.0, 0.55, curve: Curves.elasticOut),
+      ),
+    );
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.0, 0.28, curve: Curves.easeOut),
+      ),
+    );
+    _ringFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.22, 0.52, curve: Curves.easeOut),
+      ),
+    );
+    _textSlide = Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _enterCtrl,
+            curve: const Interval(0.42, 0.80, curve: Curves.easeOutCubic),
+          ),
+        );
+    _textFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.42, 0.76, curve: Curves.easeOut),
+      ),
+    );
+    _subtitleFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.58, 0.88, curve: Curves.easeOut),
+      ),
+    );
+    _loaderFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.76, 1.0, curve: Curves.easeOut),
+      ),
     );
 
-    _particleCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 8),
-    )..repeat();
-
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
-
-    // Stagger the text entry after logo finishes
-    _logoCtrl.addStatusListener((s) {
-      if (s == AnimationStatus.completed) {
-        _textCtrl.forward();
-      }
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _resolve());
+    _resolveWithMinDuration();
   }
 
-  Future<void> _resolve() async {
-    final auth = context.read<AuthProvider>();
+  Future<void> _resolveWithMinDuration() async {
+    await Future.wait([
+      _computeNextRoute(),
+      Future.delayed(const Duration(milliseconds: _minMs)),
+    ]);
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(_nextRoute!);
+  }
 
-    // Check onboarding FIRST, before bootstrap, so it always shows
-    // on a fresh install regardless of whether a token exists.
+  Future<void> _computeNextRoute() async {
+    final auth = context.read<AuthProvider>();
     final onboardingDone = await OnboardingStorage.isDone();
     if (!mounted) return;
-
     if (!onboardingDone) {
-      Navigator.of(context).pushReplacementNamed(AppRouter.onboarding);
+      _nextRoute = AppRouter.onboarding;
       return;
     }
-
-    // Onboarding already done — proceed with normal auth bootstrap.
     await auth.bootstrap();
     if (!mounted) return;
-
-    final String next;
-    if (auth.isAuthenticated) {
-      next = auth.isStaff ? AppRouter.adminHome : AppRouter.home;
-    } else {
-      next = AppRouter.login;
-    }
-    Navigator.of(context).pushReplacementNamed(next);
+    _nextRoute = auth.isAuthenticated
+        ? (auth.isStaff ? AppRouter.adminHome : AppRouter.home)
+        : AppRouter.login;
   }
 
   @override
   void dispose() {
-    _logoCtrl.dispose();
-    _textCtrl.dispose();
-    _particleCtrl.dispose();
-    _pulseCtrl.dispose();
+    _spinCtrl.dispose();
+    _enterCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.gradientStart, AppColors.gradientEnd],
+            colors: [
+              Color(0xFF3730A3),
+              AppColors.gradientStart,
+              AppColors.gradientEnd,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // Floating particles background
-              AnimatedBuilder(
-                animation: _particleCtrl,
-                builder: (context, _) => CustomPaint(
-                  painter: _ParticlePainter(progress: _particleCtrl.value),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Outer pulse ring
-                    AnimatedBuilder(
-                      animation: _pulseCtrl,
-                      builder: (context, child) {
-                        final scale = 1.0 + _pulseCtrl.value * 0.08;
-                        return Container(
-                          width: 130 * scale,
-                          height: 130 * scale,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withValues(
-                              alpha: 0.07 * (1 - _pulseCtrl.value),
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: child,
-                        );
-                      },
-                      child: ScaleTransition(
-                        scale: CurvedAnimation(
-                          parent: _logoCtrl,
-                          curve: Curves.elasticOut,
-                        ),
-                        child: Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.16),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.35),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.gradientStart.withValues(
-                                  alpha: 0.40,
+        child: SizedBox.expand(
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Spacer(flex: 2),
+
+                // ── Logo + spinning ring ────────────────────────
+                FadeTransition(
+                  opacity: _logoFade,
+                  child: ScaleTransition(
+                    scale: _logoScale,
+                    child: SizedBox(
+                      // Outer SizedBox includes ring clearance
+                      width: 260,
+                      height: 260,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Spinning ring behind logo
+                          FadeTransition(
+                            opacity: _ringFade,
+                            child: AnimatedBuilder(
+                              animation: _spinCtrl,
+                              builder: (_, w) => CustomPaint(
+                                size: const Size(260, 260),
+                                painter: _RingPainter(
+                                  progress: _spinCtrl.value,
                                 ),
-                                blurRadius: 40,
-                                spreadRadius: 4,
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(16),
-                          child: Image.asset('assets/logo_transparant.png'),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Staggered text slides
-                    SlideTransition(
-                      position:
-                          Tween<Offset>(
-                            begin: const Offset(0, 0.3),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: _textCtrl,
-                              curve: const Interval(
-                                0.0,
-                                0.6,
-                                curve: Curves.easeOutCubic,
                               ),
                             ),
                           ),
-                      child: FadeTransition(
-                        opacity: CurvedAnimation(
-                          parent: _textCtrl,
-                          curve: const Interval(
-                            0.0,
-                            0.6,
-                            curve: Curves.easeOut,
-                          ),
-                        ),
-                        child: const Text(
-                          'Labventory',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ),
-                    ),
 
-                    const SizedBox(height: 6),
-
-                    SlideTransition(
-                      position:
-                          Tween<Offset>(
-                            begin: const Offset(0, 0.4),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: _textCtrl,
-                              curve: const Interval(
-                                0.2,
-                                0.8,
-                                curve: Curves.easeOutCubic,
+                          // Logo — using app_icon.png with built-in background
+                          Container(
+                            width: 200,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(44),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.20),
+                                  blurRadius: 32,
+                                  offset: const Offset(0, 12),
+                                ),
+                                BoxShadow(
+                                  color: AppColors.gradientEnd.withValues(
+                                    alpha: 0.45,
+                                  ),
+                                  blurRadius: 56,
+                                  spreadRadius: 8,
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(44),
+                              child: Image.asset(
+                                'assets/app_icon.png',
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
-                      child: FadeTransition(
-                        opacity: CurvedAnimation(
-                          parent: _textCtrl,
-                          curve: const Interval(
-                            0.2,
-                            0.8,
-                            curve: Curves.easeOut,
-                          ),
-                        ),
-                        child: const Text(
-                          'Sistem peminjaman inventaris laboratorium kampus',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white70, fontSize: 13),
-                        ),
+                        ],
                       ),
                     ),
-
-                    const SizedBox(height: 48),
-
-                    FadeTransition(
-                      opacity: CurvedAnimation(
-                        parent: _textCtrl,
-                        curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
-                      ),
-                      child: const _DotLoader(),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 40),
+
+                // ── App name ──────────────────────────────────────
+                SlideTransition(
+                  position: _textSlide,
+                  child: FadeTransition(
+                    opacity: _textFade,
+                    child: const Text(
+                      'Labventory',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.8,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // ── Subtitle ──────────────────────────────────────
+                FadeTransition(
+                  opacity: _subtitleFade,
+                  child: Text(
+                    'Sistem peminjaman inventaris\nlaboratorium kampus',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.68),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      height: 1.55,
+                    ),
+                  ),
+                ),
+
+                const Spacer(flex: 2),
+
+                // ── Loader ────────────────────────────────────────
+                FadeTransition(
+                  opacity: _loaderFade,
+                  child: const _BouncingDots(),
+                ),
+
+                const SizedBox(height: 10),
+
+                FadeTransition(
+                  opacity: _loaderFade,
+                  child: Text(
+                    'Memuat...',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.40),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),
@@ -259,35 +276,101 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// Three-dot animated loader instead of a spinner
-class _DotLoader extends StatefulWidget {
-  const _DotLoader();
+// ─────────────────────────────────────────────────────────────────────────────
+// Ring painter
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _RingPainter extends CustomPainter {
+  const _RingPainter({required this.progress});
+  final double progress;
+
+  static final _trackPaint = Paint()
+    ..color = const Color(0x18FFFFFF)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 3.0;
+
   @override
-  State<_DotLoader> createState() => _DotLoaderState();
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r1 = size.width / 2 - 5;
+    final r2 = r1 - 18;
+    final c = Offset(cx, cy);
+
+    canvas.drawCircle(c, r1, _trackPaint);
+
+    final outerRect = Rect.fromCircle(center: c, radius: r1);
+    final outerPaint = Paint()
+      ..shader = SweepGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.0),
+          Colors.white.withValues(alpha: 0.95),
+        ],
+      ).createShader(outerRect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round;
+
+    final a1 = progress * math.pi * 2 - math.pi / 2;
+    const sweep1 = math.pi * 1.2;
+    canvas.drawArc(outerRect, a1, sweep1, false, outerPaint);
+
+    final dotX = cx + r1 * math.cos(a1 + sweep1);
+    final dotY = cy + r1 * math.sin(a1 + sweep1);
+    canvas.drawCircle(Offset(dotX, dotY), 4.5, Paint()..color = Colors.white);
+
+    final innerPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+
+    final a2 = -progress * math.pi * 2 - math.pi / 2;
+    canvas.drawArc(
+      Rect.fromCircle(center: c, radius: r2),
+      a2,
+      math.pi * 0.65,
+      false,
+      innerPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) => old.progress != progress;
 }
 
-class _DotLoaderState extends State<_DotLoader> with TickerProviderStateMixin {
-  final List<AnimationController> _controllers = [];
+// ─────────────────────────────────────────────────────────────────────────────
+// Bouncing dots
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _BouncingDots extends StatefulWidget {
+  const _BouncingDots();
+
+  @override
+  State<_BouncingDots> createState() => _BouncingDotsState();
+}
+
+class _BouncingDotsState extends State<_BouncingDots>
+    with TickerProviderStateMixin {
+  late final List<AnimationController> _ctrls;
 
   @override
   void initState() {
     super.initState();
-    for (var i = 0; i < 3; i++) {
+    _ctrls = List.generate(3, (i) {
       final c = AnimationController(
         vsync: this,
-        duration: const Duration(milliseconds: 600),
+        duration: const Duration(milliseconds: 580),
       );
-      // Stagger each dot
-      Future.delayed(Duration(milliseconds: i * 150), () {
-        if (mounted) c.repeat(reverse: true);
-      });
-      _controllers.add(c);
-    }
+      c.value = i / 3.0;
+      c.repeat(reverse: true);
+      return c;
+    });
   }
 
   @override
   void dispose() {
-    for (final c in _controllers) {
+    for (final c in _ctrls) {
       c.dispose();
     }
     super.dispose();
@@ -297,70 +380,24 @@ class _DotLoaderState extends State<_DotLoader> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: List.generate(3, (i) {
         return AnimatedBuilder(
-          animation: _controllers[i],
-          builder: (context, _) => Container(
-            width: 8,
-            height: 8 + _controllers[i].value * 6,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(
-                alpha: 0.5 + _controllers[i].value * 0.5,
+          animation: _ctrls[i],
+          builder: (_, w) {
+            final v = _ctrls[i].value;
+            return Container(
+              width: 8,
+              height: 8 + v * 8,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.30 + v * 0.70),
+                borderRadius: BorderRadius.circular(999),
               ),
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
+            );
+          },
         );
       }),
     );
   }
-}
-
-// Floating semi-transparent circles background
-class _ParticlePainter extends CustomPainter {
-  _ParticlePainter({required this.progress});
-  final double progress;
-
-  static final _particles = List.generate(14, (i) {
-    final rng = math.Random(i * 17 + 3);
-    return _Particle(
-      x: rng.nextDouble(),
-      y: rng.nextDouble(),
-      r: 8 + rng.nextDouble() * 18,
-      speed: 0.03 + rng.nextDouble() * 0.05,
-      phase: rng.nextDouble(),
-    );
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    for (final p in _particles) {
-      final t = (progress + p.phase) % 1.0;
-      final y = (p.y + t * p.speed) % 1.0;
-      final x = p.x + math.sin((t + p.phase) * math.pi * 2) * 0.04;
-      final alpha = 0.06 + math.sin(t * math.pi) * 0.06;
-      paint.color = Colors.white.withValues(alpha: alpha.clamp(0, 1));
-      canvas.drawCircle(Offset(x * size.width, y * size.height), p.r, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ParticlePainter old) => old.progress != progress;
-}
-
-class _Particle {
-  const _Particle({
-    required this.x,
-    required this.y,
-    required this.r,
-    required this.speed,
-    required this.phase,
-  });
-  final double x;
-  final double y;
-  final double r;
-  final double speed;
-  final double phase;
 }
