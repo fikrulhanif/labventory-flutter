@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -214,10 +216,10 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hero header
+// Hero header — animated blobs + staggered entrance
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _HeroHeader extends StatelessWidget {
+class _HeroHeader extends StatefulWidget {
   const _HeroHeader({
     required this.userName,
     required this.userNim,
@@ -231,158 +233,90 @@ class _HeroHeader extends StatelessWidget {
   final VoidCallback onNotificationTap;
 
   @override
-  Widget build(BuildContext context) {
-    final mqTop = MediaQuery.of(context).padding.top;
-    final greeting = _greeting();
-    final dateLabel = DateFormat('EEEE, d MMMM').format(DateTime.now());
-    final displayName = _displayName(userName);
+  State<_HeroHeader> createState() => _HeroHeaderState();
+}
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(22, mqTop + 20, 22, 52),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.gradientStart, AppColors.gradientEnd],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(36),
-          bottomRight: Radius.circular(36),
-        ),
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Background blobs — positioned relative to the Stack,
-          // clipped at the container level by borderRadius.
-          Positioned(
-            right: -50,
-            top: -10,
-            child: _Blob(size: 150, color: AppColors.heroBlobA),
-          ),
-          Positioned(
-            left: -60,
-            bottom: -20,
-            child: _Blob(size: 130, color: AppColors.heroBlobB),
-          ),
+class _HeroHeaderState extends State<_HeroHeader>
+    with TickerProviderStateMixin {
+  late final AnimationController _blobCtrl;
+  late final AnimationController _entranceCtrl;
 
-          // Content — NOT inside ClipRRect so NIM pill is never clipped.
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top row: date + notification bell
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      dateLabel,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: onNotificationTap,
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.25),
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Badge(
-                        isLabelVisible: unreadCount > 0,
-                        label: Text(unreadCount > 9 ? '9+' : '$unreadCount'),
-                        child: const Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+  // Entrance animations
+  late final Animation<double> _greetingFade;
+  late final Animation<Offset> _greetingSlide;
+  late final Animation<double> _nameFade;
+  late final Animation<Offset> _nameSlide;
+  late final Animation<double> _nimFade;
+  late final Animation<Offset> _nimSlide;
+  late final Animation<double> _dateRowFade;
 
-              // Greeting
-              Text(
-                greeting,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 3),
+  @override
+  void initState() {
+    super.initState();
 
-              // Name — full width, wraps if needed
-              Text(
-                displayName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  height: 1.15,
-                  letterSpacing: -0.5,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 10),
+    // Blob rotation — 30 s continuous loop
+    _blobCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 30),
+    )..repeat();
 
-              // NIM badge — sits BELOW the name, never clipped
-              if (userNim != null)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.30),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.badge_outlined,
-                          color: Colors.white70,
-                          size: 13,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          userNim!,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
+    // Entrance — 600 ms total
+    _entranceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+
+    // date row — delay 0ms
+    _dateRowFade = CurvedAnimation(
+      parent: _entranceCtrl,
+      curve: const Interval(0.0, 0.55, curve: Curves.easeOut),
     );
+
+    // greeting — delay 0ms
+    _greetingFade = CurvedAnimation(
+      parent: _entranceCtrl,
+      curve: const Interval(0.0, 0.60, curve: Curves.easeOut),
+    );
+    _greetingSlide =
+        Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _entranceCtrl,
+            curve: const Interval(0.0, 0.60, curve: Curves.easeOut),
+          ),
+        );
+
+    // name — delay ~100ms (start 0.14)
+    _nameFade = CurvedAnimation(
+      parent: _entranceCtrl,
+      curve: const Interval(0.14, 0.72, curve: Curves.easeOut),
+    );
+    _nameSlide = Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _entranceCtrl,
+            curve: const Interval(0.14, 0.72, curve: Curves.easeOut),
+          ),
+        );
+
+    // NIM — delay ~200ms (start 0.28)
+    _nimFade = CurvedAnimation(
+      parent: _entranceCtrl,
+      curve: const Interval(0.28, 0.85, curve: Curves.easeOut),
+    );
+    _nimSlide = Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _entranceCtrl,
+            curve: const Interval(0.28, 0.85, curve: Curves.easeOut),
+          ),
+        );
+  }
+
+  @override
+  void dispose() {
+    _blobCtrl.dispose();
+    _entranceCtrl.dispose();
+    super.dispose();
   }
 
   static String _greeting() {
@@ -401,6 +335,247 @@ class _HeroHeader extends StatelessWidget {
         .map((w) => w.isEmpty ? w : w[0].toUpperCase() + w.substring(1))
         .join(' ');
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final mqTop = MediaQuery.of(context).padding.top;
+    final greeting = _greeting();
+    final dateLabel = DateFormat('EEEE, d MMMM').format(DateTime.now());
+    final displayName = _displayName(widget.userName);
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(22, mqTop + 20, 22, 52),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.gradientStart, AppColors.gradientEnd],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(36),
+          bottomRight: Radius.circular(36),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Animated background blobs
+          Positioned(
+            right: -50,
+            top: -10,
+            child: AnimatedBuilder(
+              animation: _blobCtrl,
+              builder: (context, child) {
+                final angle = _blobCtrl.value * 2 * math.pi;
+                final dy = math.sin(angle) * 12;
+                final dx = math.cos(angle * 0.7) * 8;
+                return Transform.translate(
+                  offset: Offset(dx, dy),
+                  child: RotationTransition(turns: _blobCtrl, child: child),
+                );
+              },
+              child: _Blob(size: 150, color: AppColors.heroBlobA),
+            ),
+          ),
+          Positioned(
+            left: -60,
+            bottom: -20,
+            child: AnimatedBuilder(
+              animation: _blobCtrl,
+              builder: (context, child) {
+                final angle = _blobCtrl.value * 2 * math.pi;
+                final dy = math.sin(angle + math.pi) * 10;
+                final dx = math.cos(angle * 0.5 + math.pi) * 6;
+                return Transform.translate(
+                  offset: Offset(dx, dy),
+                  child: RotationTransition(
+                    // counter-clockwise: negate turns via ReverseAnimation
+                    turns: ReverseAnimation(_blobCtrl),
+                    child: child,
+                  ),
+                );
+              },
+              child: _Blob(size: 130, color: AppColors.heroBlobB),
+            ),
+          ),
+
+          // Shimmer diagonal line (CustomPainter)
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(36),
+                bottomRight: Radius.circular(36),
+              ),
+              child: CustomPaint(painter: _ShimmerDiagonalPainter()),
+            ),
+          ),
+
+          // Content
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top row: date + notification bell
+              FadeTransition(
+                opacity: _dateRowFade,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        dateLabel,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: widget.onNotificationTap,
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Badge(
+                          isLabelVisible: widget.unreadCount > 0,
+                          label: Text(
+                            widget.unreadCount > 9
+                                ? '9+'
+                                : '${widget.unreadCount}',
+                          ),
+                          child: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Greeting
+              FadeTransition(
+                opacity: _greetingFade,
+                child: SlideTransition(
+                  position: _greetingSlide,
+                  child: Text(
+                    greeting,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 3),
+
+              // Name
+              FadeTransition(
+                opacity: _nameFade,
+                child: SlideTransition(
+                  position: _nameSlide,
+                  child: Text(
+                    displayName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      height: 1.15,
+                      letterSpacing: -0.5,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // NIM badge
+              if (widget.userNim != null)
+                FadeTransition(
+                  opacity: _nimFade,
+                  child: SlideTransition(
+                    position: _nimSlide,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.30),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.badge_outlined,
+                              color: Colors.white70,
+                              size: 13,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              widget.userNim!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Subtle shimmer diagonal line across the hero gradient.
+class _ShimmerDiagonalPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withValues(alpha: 0.0),
+          Colors.white.withValues(alpha: 0.07),
+          Colors.white.withValues(alpha: 0.0),
+        ],
+        stops: const [0.35, 0.50, 0.65],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
+  }
+
+  @override
+  bool shouldRepaint(_ShimmerDiagonalPainter oldDelegate) => false;
 }
 
 class _Blob extends StatelessWidget {
@@ -422,7 +597,7 @@ class _Blob extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Stat strip
+// Stat strip — animated slide-up on load + counting numbers
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _StatStrip extends StatelessWidget {
@@ -439,49 +614,60 @@ class _StatStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 0.6),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 40.0, end: 0.0),
+      duration: const Duration(milliseconds: 550),
+      curve: Curves.elasticOut,
+      builder: (context, offsetY, child) {
+        return Transform.translate(offset: Offset(0, offsetY), child: child);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant,
+            width: 0.6,
           ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-      child: Row(
-        children: [
-          _StatTile(
-            icon: Icons.pending_actions_rounded,
-            tone: AppColors.statusPending,
-            label: 'Aktif',
-            value: activeLoans.toString(),
-          ),
-          _StatDivider(),
-          _StatTile(
-            icon: Icons.check_circle_outline_rounded,
-            tone: AppColors.statusReturned,
-            label: 'Dikembalikan',
-            value: returned.toString(),
-          ),
-          _StatDivider(),
-          _StatTile(
-            icon: Icons.inventory_2_outlined,
-            tone: AppColors.primary,
-            label: 'Tersedia',
-            value: available.toString(),
-          ),
-        ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+        child: Row(
+          children: [
+            _StatTile(
+              icon: Icons.pending_actions_rounded,
+              tone: AppColors.statusPending,
+              label: 'Aktif',
+              value: activeLoans,
+            ),
+            _StatDivider(),
+            _StatTile(
+              icon: Icons.check_circle_outline_rounded,
+              tone: AppColors.statusReturned,
+              label: 'Dikembalikan',
+              value: returned,
+            ),
+            _StatDivider(),
+            _StatTile(
+              icon: Icons.inventory_2_outlined,
+              tone: AppColors.primary,
+              label: 'Tersedia',
+              value: available,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _StatTile extends StatelessWidget {
+class _StatTile extends StatefulWidget {
   const _StatTile({
     required this.icon,
     required this.tone,
@@ -491,8 +677,13 @@ class _StatTile extends StatelessWidget {
   final IconData icon;
   final Color tone;
   final String label;
-  final String value;
+  final int value;
 
+  @override
+  State<_StatTile> createState() => _StatTileState();
+}
+
+class _StatTileState extends State<_StatTile> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -503,22 +694,29 @@ class _StatTile extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: tone.withValues(alpha: 0.12),
+              color: widget.tone.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: tone, size: 18),
+            child: Icon(widget.icon, color: widget.tone, size: 18),
           ),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
-            ),
+          TweenAnimationBuilder<int>(
+            tween: IntTween(begin: 0, end: widget.value),
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeOut,
+            builder: (context, animatedValue, _) {
+              return Text(
+                '$animatedValue',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 22,
+                ),
+              );
+            },
           ),
           const SizedBox(height: 1),
           Text(
-            label,
+            widget.label,
             style: theme.textTheme.labelSmall?.copyWith(
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -543,12 +741,60 @@ class _StatDivider extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Quick actions — meaningful, distinct destinations
+// Quick actions — staggered entrance + scale-on-press
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _QuickActions extends StatelessWidget {
+class _QuickActions extends StatefulWidget {
   const _QuickActions({required this.onSwitchTab});
   final void Function(int) onSwitchTab;
+
+  @override
+  State<_QuickActions> createState() => _QuickActionsState();
+}
+
+class _QuickActionsState extends State<_QuickActions>
+    with TickerProviderStateMixin {
+  static const _delays = [0, 80, 160, 240];
+
+  late final List<AnimationController> _ctrls;
+  late final List<Animation<double>> _fades;
+  late final List<Animation<Offset>> _slides;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrls = List.generate(4, (i) {
+      return AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 450),
+      );
+    });
+    _fades = _ctrls
+        .map((c) => CurvedAnimation(parent: c, curve: Curves.easeOut))
+        .toList();
+    _slides = _ctrls
+        .map(
+          (c) => Tween<Offset>(
+            begin: const Offset(0, 0.4),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: c, curve: Curves.easeOut)),
+        )
+        .toList();
+
+    for (var i = 0; i < 4; i++) {
+      Future.delayed(Duration(milliseconds: _delays[i]), () {
+        if (mounted) _ctrls[i].forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _ctrls) {
+      c.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -559,43 +805,50 @@ class _QuickActions extends StatelessWidget {
         icon: Icons.inventory_2_outlined,
         label: 'Inventaris',
         color: AppColors.primary,
-        onTap: () => onSwitchTab(1),
+        onTap: () => widget.onSwitchTab(1),
       ),
       _QA(
         icon: Icons.history_rounded,
         label: 'Riwayat',
-        color: AppColors.statusBorrowed,
-        onTap: () => onSwitchTab(2),
+        color: AppColors.statusReturned,
+        onTap: () => widget.onSwitchTab(2),
       ),
       _QA(
         icon: Icons.notifications_outlined,
         label: 'Notifikasi',
         color: AppColors.statusApproved,
-        onTap: () => onSwitchTab(3),
+        onTap: () => widget.onSwitchTab(3),
       ),
       _QA(
         icon: Icons.person,
         label: 'Profil',
         color: AppColors.accent,
-        onTap: () => onSwitchTab(4),
+        onTap: () => widget.onSwitchTab(4),
       ),
     ];
 
     return Row(
-      children: actions.map((qa) {
+      children: List.generate(actions.length, (i) {
+        final qa = actions[i];
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: _QuickActionTile(
-              icon: qa.icon,
-              label: qa.label,
-              color: qa.color,
-              onTap: qa.onTap,
-              theme: theme,
+            child: FadeTransition(
+              opacity: _fades[i],
+              child: SlideTransition(
+                position: _slides[i],
+                child: _QuickActionTile(
+                  icon: qa.icon,
+                  label: qa.label,
+                  color: qa.color,
+                  onTap: qa.onTap,
+                  theme: theme,
+                ),
+              ),
             ),
           ),
         );
-      }).toList(),
+      }),
     );
   }
 }
@@ -613,7 +866,7 @@ class _QA {
   final VoidCallback onTap;
 }
 
-class _QuickActionTile extends StatelessWidget {
+class _QuickActionTile extends StatefulWidget {
   const _QuickActionTile({
     required this.icon,
     required this.label,
@@ -628,55 +881,84 @@ class _QuickActionTile extends StatelessWidget {
   final ThemeData theme;
 
   @override
+  State<_QuickActionTile> createState() => _QuickActionTileState();
+}
+
+class _QuickActionTileState extends State<_QuickActionTile> {
+  double _scale = 1.0;
+
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant,
-              width: 0.6,
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _scale = 0.93),
+      onTapUp: (_) {
+        setState(() => _scale = 1.0);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _scale = 1.0),
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            decoration: BoxDecoration(
+              color: widget.theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: widget.theme.colorScheme.outlineVariant,
+                width: 0.6,
+              ),
             ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Colored top accent stripe
+                Container(
+                  height: 3,
+                  color: widget.color.withValues(alpha: 0.55),
                 ),
-                child: Icon(icon, color: color, size: 21),
-              ),
-              const SizedBox(height: 7),
-              Text(
-                label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10.5,
-                  letterSpacing: 0.1,
+                // Icon + label
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 11, 4, 13),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: widget.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(widget.icon, color: widget.color, size: 21),
+                      ),
+                      const SizedBox(height: 7),
+                      Text(
+                        widget.label,
+                        style: widget.theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 10.5,
+                          letterSpacing: 0.1,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
-// Section header
+// Section header — animated accent bar + slide-in
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
@@ -692,54 +974,79 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 8, 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
-              ),
-            ),
-          ),
-          if (trailingLabel != null && onTrailing != null)
-            TextButton(
-              onPressed: onTrailing,
-              style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.primary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    trailingLabel!,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+      builder: (context, t, child) {
+        return Opacity(opacity: t, child: child);
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 8, 8),
+        child: Row(
+          children: [
+            // Left accent bar — animates height from 0 to 16
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 16.0),
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeOut,
+              builder: (context, h, _) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: Container(
+                    width: 3,
+                    height: h,
+                    color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(width: 2),
-                  const Icon(Icons.chevron_right_rounded, size: 16),
-                ],
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
               ),
             ),
-        ],
+            if (trailingLabel != null && onTrailing != null)
+              TextButton(
+                onPressed: onTrailing,
+                style: TextButton.styleFrom(
+                  foregroundColor: theme.colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      trailingLabel!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    const Icon(Icons.chevron_right_rounded, size: 16),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Category strip
+// Category strip — staggered horizontal entrance from left
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _CategoryStrip extends StatelessWidget {
@@ -781,11 +1088,26 @@ class _CategoryStrip extends StatelessWidget {
           final c = categories[i];
           final color = _palette[i % _palette.length];
           final icon = _icons[i % _icons.length];
-          return _CategoryTile(
-            label: c.name as String,
-            icon: icon,
-            color: color,
-            onTap: () => onTap(c),
+          // Staggered slide from left (offset X from +20 to 0)
+          return TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: Duration(milliseconds: 350 + i * 60),
+            curve: Curves.easeOut,
+            builder: (context, t, child) {
+              return Opacity(
+                opacity: t,
+                child: Transform.translate(
+                  offset: Offset(20 * (1 - t), 0),
+                  child: child,
+                ),
+              );
+            },
+            child: _CategoryTile(
+              label: c.name as String,
+              icon: icon,
+              color: color,
+              onTap: () => onTap(c),
+            ),
           );
         },
       ),
@@ -828,14 +1150,41 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.13),
-                  borderRadius: BorderRadius.circular(12),
+              // Icon container with colored bottom gradient strip
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.13),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, color: color, size: 21),
+                    ),
+                    // Colored bottom gradient strip
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              color.withValues(alpha: 0.0),
+                              color.withValues(alpha: 0.15),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: color, size: 21),
               ),
               const SizedBox(height: 7),
               Text(
@@ -858,7 +1207,7 @@ class _CategoryTile extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Featured inventory horizontal scroll
+// Featured inventory horizontal scroll — staggered scale+fade entrance
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _FeaturedInventory extends StatelessWidget {
@@ -910,9 +1259,22 @@ class _FeaturedInventory extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(width: 12),
         itemBuilder: (context, i) {
           final item = items[i];
-          return SizedBox(
-            width: _cardW,
-            child: _FeaturedCard(item: item, imageHeight: _imgH),
+          // Staggered scale 0.92→1.0 + fade, delay i*50ms
+          return TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: Duration(milliseconds: 400 + i * 50),
+            curve: Curves.easeOut,
+            builder: (context, t, child) {
+              final scale = 0.92 + 0.08 * t;
+              return Opacity(
+                opacity: t,
+                child: Transform.scale(scale: scale, child: child),
+              );
+            },
+            child: SizedBox(
+              width: _cardW,
+              child: _FeaturedCard(item: item, imageHeight: _imgH),
+            ),
           );
         },
       ),
@@ -978,6 +1340,8 @@ class _FeaturedCard extends StatelessWidget {
     final statusColor = available
         ? AppColors.statusReturned
         : AppColors.statusRejected;
+    // Availability indicator line color: green if available, red if not
+    final indicatorColor = available ? AppColors.success : AppColors.danger;
 
     return Material(
       color: theme.colorScheme.surface,
@@ -999,41 +1363,57 @@ class _FeaturedCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Image
-              Hero(
-                tag: 'featured-inventory-image-${item.id}',
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
+              // Image with top availability indicator line
+              Stack(
+                children: [
+                  Hero(
+                    tag: 'featured-inventory-image-${item.id}',
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
+                      child: SizedBox(
+                        height: imageHeight,
+                        width: double.infinity,
+                        child: item.imageUrl == null
+                            ? Container(
+                                color: theme.colorScheme.surfaceContainerHigh,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.inventory_2_outlined,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  size: 34,
+                                ),
+                              )
+                            : CachedNetworkImage(
+                                imageUrl: item.imageUrl!,
+                                fit: BoxFit.cover,
+                                memCacheWidth: 600,
+                                placeholder: (_, _) => Container(
+                                  color: theme.colorScheme.surfaceContainerHigh,
+                                ),
+                                errorWidget: (_, _, _) => Container(
+                                  color: theme.colorScheme.surfaceContainerHigh,
+                                  alignment: Alignment.center,
+                                  child: const Icon(Icons.broken_image),
+                                ),
+                              ),
+                      ),
+                    ),
                   ),
-                  child: SizedBox(
-                    height: imageHeight,
-                    width: double.infinity,
-                    child: item.imageUrl == null
-                        ? Container(
-                            color: theme.colorScheme.surfaceContainerHigh,
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.inventory_2_outlined,
-                              color: theme.colorScheme.onSurfaceVariant,
-                              size: 34,
-                            ),
-                          )
-                        : CachedNetworkImage(
-                            imageUrl: item.imageUrl!,
-                            fit: BoxFit.cover,
-                            memCacheWidth: 600,
-                            placeholder: (_, _) => Container(
-                              color: theme.colorScheme.surfaceContainerHigh,
-                            ),
-                            errorWidget: (_, _, _) => Container(
-                              color: theme.colorScheme.surfaceContainerHigh,
-                              alignment: Alignment.center,
-                              child: const Icon(Icons.broken_image),
-                            ),
-                          ),
+                  // 2px colored availability indicator at top edge
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
+                      child: Container(height: 2, color: indicatorColor),
+                    ),
                   ),
-                ),
+                ],
               ),
 
               // Info
@@ -1112,7 +1492,7 @@ class _FeaturedCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Recent activity
+// Recent activity — slide-up fade entrance
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _RecentActivity extends StatelessWidget {
@@ -1151,8 +1531,76 @@ class _RecentActivity extends StatelessWidget {
     }
 
     if (loans.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(24),
+      return TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOut,
+        builder: (context, t, child) {
+          return Opacity(
+            opacity: t,
+            child: Transform.translate(
+              offset: Offset(0, 16 * (1 - t)),
+              child: child,
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant,
+              width: 0.6,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.assignment_outlined,
+                color: theme.colorScheme.onSurfaceVariant,
+                size: 34,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Belum ada peminjaman',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Pilih alat dari inventaris dan mulai pinjam.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+              FilledButton.tonal(
+                onPressed: onEmptyAction,
+                child: const Text('Jelajahi Inventaris'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOut,
+      builder: (context, t, child) {
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, 16 * (1 - t)),
+            child: child,
+          ),
+        );
+      },
+      child: Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
@@ -1163,55 +1611,18 @@ class _RecentActivity extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(
-              Icons.assignment_outlined,
-              color: theme.colorScheme.onSurfaceVariant,
-              size: 34,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Belum ada peminjaman',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Pilih alat dari inventaris dan mulai pinjam.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 14),
-            FilledButton.tonal(
-              onPressed: onEmptyAction,
-              child: const Text('Jelajahi Inventaris'),
-            ),
+            for (var i = 0; i < loans.length; i++) ...[
+              _LoanRow(loan: loans[i]),
+              if (i < loans.length - 1)
+                Divider(
+                  height: 1,
+                  indent: 66,
+                  endIndent: 16,
+                  color: theme.colorScheme.outlineVariant,
+                ),
+            ],
           ],
         ),
-      );
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 0.6),
-      ),
-      child: Column(
-        children: [
-          for (var i = 0; i < loans.length; i++) ...[
-            _LoanRow(loan: loans[i]),
-            if (i < loans.length - 1)
-              Divider(
-                height: 1,
-                indent: 66,
-                endIndent: 16,
-                color: theme.colorScheme.outlineVariant,
-              ),
-          ],
-        ],
       ),
     );
   }
@@ -1373,7 +1784,7 @@ class _DueSoonBanner extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Recent notifications mini-strip
+// Recent notifications mini-strip — slide-up entrance
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _RecentNotifications extends StatelessWidget {
@@ -1389,25 +1800,42 @@ class _RecentNotifications extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 0.6),
-      ),
-      child: Column(
-        children: [
-          for (var i = 0; i < notifications.length; i++) ...[
-            _NotifRow(notif: notifications[i], onTap: onSeeAll),
-            if (i < notifications.length - 1)
-              Divider(
-                height: 1,
-                indent: 62,
-                endIndent: 16,
-                color: theme.colorScheme.outlineVariant,
-              ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOut,
+      builder: (context, t, child) {
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, 16 * (1 - t)),
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant,
+            width: 0.6,
+          ),
+        ),
+        child: Column(
+          children: [
+            for (var i = 0; i < notifications.length; i++) ...[
+              _NotifRow(notif: notifications[i], onTap: onSeeAll),
+              if (i < notifications.length - 1)
+                Divider(
+                  height: 1,
+                  indent: 62,
+                  endIndent: 16,
+                  color: theme.colorScheme.outlineVariant,
+                ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

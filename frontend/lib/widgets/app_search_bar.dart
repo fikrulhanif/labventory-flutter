@@ -143,8 +143,8 @@ class _AppSearchBarState extends State<AppSearchBar>
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 0.6,
+                  color: theme.colorScheme.outline,
+                  width: 1.0,
                 ),
               ),
               focusedBorder: OutlineInputBorder(

@@ -8,10 +8,8 @@ import '../../routes/app_router.dart';
 import '../../services/inventory_service.dart';
 import '../../widgets/skeleton.dart';
 
-/// Inventory detail with a SliverAppBar hero image, info chips, and a
-/// pinned "Borrow" CTA at the bottom. Accepts either an `Inventory`
-/// instance or an `int` id via route arguments — same flow as before,
-/// just rebuilt visually.
+/// Inventory detail with a SliverAppBar hero image, animated content
+/// entrance, stock progress bar, info cards, and a pinned borrow CTA.
 class InventoryDetailScreen extends StatefulWidget {
   const InventoryDetailScreen({super.key});
 
@@ -19,10 +17,35 @@ class InventoryDetailScreen extends StatefulWidget {
   State<InventoryDetailScreen> createState() => _InventoryDetailScreenState();
 }
 
-class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
+class _InventoryDetailScreenState extends State<InventoryDetailScreen>
+    with SingleTickerProviderStateMixin {
   Inventory? _inventory;
   String? _errorMessage;
   bool _loading = false;
+
+  late final AnimationController _contentCtrl;
+  late final Animation<double> _contentFade;
+  late final Animation<Offset> _contentSlide;
+
+  @override
+  void initState() {
+    super.initState();
+    _contentCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _contentFade = CurvedAnimation(parent: _contentCtrl, curve: Curves.easeOut);
+    _contentSlide = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _contentCtrl, curve: Curves.easeOut));
+  }
+
+  @override
+  void dispose() {
+    _contentCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -30,6 +53,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (_inventory == null && args is Inventory) {
       _inventory = args;
+      _contentCtrl.forward();
     } else if (_inventory == null && args is int) {
       _fetch(args);
     }
@@ -46,6 +70,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
       _loading = false;
       if (response.success && response.data != null) {
         _inventory = response.data;
+        _contentCtrl.forward();
       } else {
         _errorMessage = response.message.isEmpty
             ? 'Gagal memuat inventaris.'
@@ -113,57 +138,94 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
           ),
           SliverList.list(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _CodeRow(code: inv.code),
-                    const SizedBox(height: 8),
-                    Text(inv.name, style: theme.textTheme.headlineMedium),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+              FadeTransition(
+                opacity: _contentFade,
+                child: SlideTransition(
+                  position: _contentSlide,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _Chip(
-                          icon: Icons.category_outlined,
-                          label: inv.category?.name ?? 'Tanpa Kategori',
-                          color: AppColors.primary,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _CodeRow(code: inv.code),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    inv.name,
+                                    style: theme.textTheme.headlineMedium
+                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        _Chip(
-                          icon: available
-                              ? Icons.check_circle_outline
-                              : Icons.do_not_disturb_alt,
-                          label: available ? 'Tersedia' : 'Stok Habis',
-                          color: available
-                              ? AppColors.statusReturned
-                              : AppColors.statusRejected,
+                        const SizedBox(height: 14),
+                        // Status + category chips
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _Chip(
+                              icon: Icons.category_outlined,
+                              label: inv.category?.name ?? 'Tanpa Kategori',
+                              color: AppColors.primary,
+                            ),
+                            _Chip(
+                              icon: available
+                                  ? Icons.check_circle_outline
+                                  : Icons.do_not_disturb_alt,
+                              label: available ? 'Tersedia' : 'Stok Habis',
+                              color: available
+                                  ? AppColors.statusReturned
+                                  : AppColors.statusRejected,
+                            ),
+                            _Chip(
+                              icon: Icons.inventory_2_outlined,
+                              label: '${inv.stock} unit',
+                              color: inv.stock > 0
+                                  ? AppColors.statusBorrowed
+                                  : AppColors.statusRejected,
+                            ),
+                          ],
                         ),
-                        _Chip(
-                          icon: Icons.inventory_2_outlined,
-                          label: '${inv.stock} unit',
-                          color: inv.stock > 0
-                              ? AppColors.statusBorrowed
-                              : AppColors.statusRejected,
+                        const SizedBox(height: 20),
+                        // Animated stock bar
+                        _StockBar(inventory: inv),
+                        const SizedBox(height: 20),
+                        _SectionTitle(text: 'Deskripsi'),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHigh
+                                .withValues(alpha: 0.60),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            inv.description?.isNotEmpty == true
+                                ? inv.description!
+                                : 'Tidak ada deskripsi tersedia untuk inventaris ini.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              height: 1.6,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
                         ),
+                        const SizedBox(height: 20),
+                        _SectionTitle(text: 'Informasi'),
+                        const SizedBox(height: 10),
+                        _InfoCard(inv: inv),
+                        const SizedBox(height: 110),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    _SectionTitle(text: 'Deskripsi'),
-                    const SizedBox(height: 6),
-                    Text(
-                      inv.description?.isNotEmpty == true
-                          ? inv.description!
-                          : 'Tidak ada deskripsi tersedia.',
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 20),
-                    _InfoCard(inv: inv),
-                    // Spacer so the pinned CTA never overlaps the last
-                    // line of content.
-                    const SizedBox(height: 110),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -323,42 +385,74 @@ class _SectionTitle extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 16,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }
 
+/// Clean table-style info card (no colorful grid — keeps it professional).
 class _InfoCard extends StatelessWidget {
   const _InfoCard({required this.inv});
   final Inventory inv;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _kv(theme, 'ID Inventaris', '#${inv.id}'),
-            const SizedBox(height: 10),
-            _kv(theme, 'Kode', inv.code),
-            const SizedBox(height: 10),
-            _kv(theme, 'Kategori', inv.category?.name ?? '—'),
-            const SizedBox(height: 10),
-            _kv(theme, 'Stok tersedia', '${inv.stock} unit'),
-            const SizedBox(height: 10),
-            _kv(theme, 'Status', inv.isAvailable ? 'Tersedia' : 'Stok Habis'),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 0.8),
+      ),
+      child: Column(
+        children: [
+          _kv(theme, 'ID Inventaris', '#${inv.id}'),
+          _divider(theme),
+          _kv(theme, 'Kode', inv.code),
+          _divider(theme),
+          _kv(theme, 'Kategori', inv.category?.name ?? '—'),
+          _divider(theme),
+          _kv(theme, 'Stok tersedia', '${inv.stock} unit'),
+          _divider(theme),
+          _kv(
+            theme,
+            'Status',
+            inv.isAvailable ? 'Tersedia' : 'Stok Habis',
+            valueColor: inv.isAvailable
+                ? AppColors.statusReturned
+                : AppColors.statusRejected,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _kv(ThemeData theme, String key, String value) {
+  Widget _divider(ThemeData theme) => Divider(
+    height: 18,
+    thickness: 0.6,
+    color: theme.colorScheme.outlineVariant,
+  );
+
+  Widget _kv(ThemeData theme, String key, String value, {Color? valueColor}) {
     return Row(
       children: [
         SizedBox(
@@ -375,6 +469,7 @@ class _InfoCard extends StatelessWidget {
             value,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
+              color: valueColor,
             ),
             textAlign: TextAlign.right,
           ),
@@ -384,58 +479,176 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-class _BorrowBar extends StatelessWidget {
-  const _BorrowBar({required this.inventory});
+/// Animated stock level progress bar.
+class _StockBar extends StatelessWidget {
+  const _StockBar({required this.inventory});
   final Inventory inventory;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canBorrow = inventory.isAvailable;
+    final stock = inventory.stock;
+    // Use a reasonable max of 10 for visual scale; cap at 1.0.
+    final fraction = (stock / 10.0).clamp(0.0, 1.0);
+    final color = stock == 0
+        ? AppColors.statusRejected
+        : stock <= 2
+        ? AppColors.statusPending
+        : AppColors.statusReturned;
 
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          border: Border(
-            top: BorderSide(color: theme.colorScheme.outline, width: 0.6),
-          ),
-        ),
-        child: Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    canBorrow ? 'Siap dipinjam' : 'Sedang tidak tersedia',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: canBorrow
-                          ? AppColors.statusReturned
-                          : theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    canBorrow
-                        ? '${inventory.stock} tersedia di stok'
-                        : 'Stok akan diisi ulang setelah dikembalikan',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
+            Icon(Icons.inventory_outlined, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(
+              'Stok tersedia',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(width: 12),
-            _GradientButton(
-              enabled: canBorrow,
-              onPressed: () => Navigator.of(
-                context,
-              ).pushNamed(AppRouter.loanCreate, arguments: inventory),
+            const Spacer(),
+            Text(
+              '$stock unit',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
             ),
           ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: Container(
+            height: 8,
+            color: theme.colorScheme.surfaceContainerHigh,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: fraction),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOutCubic,
+              builder: (_, value, _) {
+                return FractionallySizedBox(
+                  widthFactor: value,
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BorrowBar extends StatefulWidget {
+  const _BorrowBar({required this.inventory});
+  final Inventory inventory;
+
+  @override
+  State<_BorrowBar> createState() => _BorrowBarState();
+}
+
+class _BorrowBarState extends State<_BorrowBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<Offset> _slide;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    )..forward();
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final canBorrow = widget.inventory.isAvailable;
+
+    return SlideTransition(
+      position: _slide,
+      child: FadeTransition(
+        opacity: _fade,
+        child: SafeArea(
+          top: false,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              border: Border(
+                top: BorderSide(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 0.6,
+                ),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        canBorrow ? 'Siap dipinjam' : 'Sedang tidak tersedia',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: canBorrow
+                              ? AppColors.statusReturned
+                              : theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        canBorrow
+                            ? '${widget.inventory.stock} unit tersedia di stok'
+                            : 'Stok akan diisi ulang setelah dikembalikan',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _GradientButton(
+                  enabled: canBorrow,
+                  onPressed: () => Navigator.of(context).pushNamed(
+                    AppRouter.loanCreate,
+                    arguments: widget.inventory,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
