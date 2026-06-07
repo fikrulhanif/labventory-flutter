@@ -10,8 +10,7 @@ import '../../widgets/skeleton.dart';
 import 'ktm_viewer_screen.dart';
 
 /// Read-only loan detail with a timeline visualization, KTM preview,
-/// and contextual notes. Accepts the loan `id` (route arguments) or a
-/// hydrated `Loan` instance.
+/// cancel button (pending only), countdown, and contextual notes.
 class LoanDetailScreen extends StatefulWidget {
   const LoanDetailScreen({super.key});
 
@@ -43,8 +42,64 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
     setState(() {
       _loading = false;
       _loan = loan;
-      if (loan == null) _error = 'Could not load loan #$id.';
+      if (loan == null) _error = 'Tidak dapat memuat peminjaman #$id.';
     });
+  }
+
+  Future<void> _confirmCancel(BuildContext context, Loan loan) async {
+    final theme = Theme.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dctx) => AlertDialog(
+        title: const Text('Batalkan Peminjaman?'),
+        content: Text(
+          'Peminjaman "${loan.inventory?.name ?? '#${loan.id}'}" akan '
+          'dibatalkan. Tindakan ini tidak dapat diurungkan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dctx).pop(false),
+            child: const Text('Kembali'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: theme.colorScheme.error,
+              foregroundColor: theme.colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dctx).pop(true),
+            child: const Text('Ya, Batalkan'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final loanProvider = context.read<LoanProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    final ok = await loanProvider.cancelLoan(loan.id);
+    if (!mounted) return;
+
+    if (ok) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Peminjaman berhasil dibatalkan.'),
+          backgroundColor: AppColors.statusReturned,
+        ),
+      );
+      navigator.pop();
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            loanProvider.submitError ?? 'Gagal membatalkan peminjaman.',
+          ),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
   }
 
   @override
@@ -60,7 +115,11 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
           ? const _LoanDetailSkeleton()
           : (loan == null
                 ? _ErrorBody(message: _error)
-                : _LoanDetailBody(loan: loan, theme: theme)),
+                : _LoanDetailBody(
+                    loan: loan,
+                    theme: theme,
+                    onCancel: () => _confirmCancel(context, loan),
+                  )),
     );
   }
 }
@@ -68,24 +127,38 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
 // ---------------------------------------------------------------------
 
 class _LoanDetailBody extends StatelessWidget {
-  const _LoanDetailBody({required this.loan, required this.theme});
+  const _LoanDetailBody({
+    required this.loan,
+    required this.theme,
+    required this.onCancel,
+  });
   final Loan loan;
   final ThemeData theme;
+  final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
+    final isPending = loan.status == LoanStatus.pending;
+    final isBorrowed = loan.status == LoanStatus.borrowed;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         _StatusHero(loan: loan),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+
+        // Countdown banner — shown when borrowed and return date is near
+        if (isBorrowed && loan.returnDate != null)
+          _CountdownBanner(returnDate: loan.returnDate!),
+
+        const SizedBox(height: 12),
         _InventoryCard(loan: loan),
         const SizedBox(height: 16),
-        _SectionTitle(text: 'Periode'),
+        _SectionTitle(text: 'Periode Peminjaman'),
         const SizedBox(height: 8),
         _PeriodCard(loan: loan),
         const SizedBox(height: 16),
-        _SectionTitle(text: 'Kronologi'),
+        _SectionTitle(text: 'Kronologi Status'),
         const SizedBox(height: 8),
         _Timeline(loan: loan),
         if (loan.notes != null && loan.notes!.isNotEmpty) ...[
@@ -106,8 +179,98 @@ class _LoanDetailBody extends StatelessWidget {
           const SizedBox(height: 8),
           _KtmCard(loanId: loan.id, url: loan.documentUrl!),
         ],
-        const SizedBox(height: 16),
+
+        // Cancel button — only for pending loans
+        if (isPending) ...[
+          const SizedBox(height: 24),
+          OutlinedButton.icon(
+            onPressed: onCancel,
+            icon: const Icon(Icons.cancel_outlined),
+            label: const Text('Batalkan Peminjaman'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+              side: BorderSide(color: theme.colorScheme.error),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------
+
+class _CountdownBanner extends StatelessWidget {
+  const _CountdownBanner({required this.returnDate});
+  final DateTime returnDate;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final now = DateTime.now();
+    final daysLeft = returnDate.difference(now).inDays;
+    final overdue = daysLeft < 0;
+    final urgent = !overdue && daysLeft <= 2;
+    final accent = overdue
+        ? AppColors.danger
+        : urgent
+        ? AppColors.statusPending
+        : AppColors.statusReturned;
+
+    final message = overdue
+        ? 'Terlambat ${(-daysLeft)} hari — segera kembalikan alat!'
+        : daysLeft == 0
+        ? 'Harus dikembalikan HARI INI'
+        : daysLeft == 1
+        ? 'Harus dikembalikan BESOK'
+        : 'Sisa $daysLeft hari sebelum jatuh tempo';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withValues(alpha: 0.35), width: 0.8),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              overdue ? Icons.warning_rounded : Icons.access_time_rounded,
+              color: accent,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'Batas: ${DateFormat('d MMMM yyyy').format(returnDate)}',
+                  style: theme.textTheme.bodySmall?.copyWith(color: accent),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -120,7 +283,6 @@ class _StatusHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final tone = _toneFor(loan.status);
     return Container(
       padding: const EdgeInsets.all(20),
@@ -186,8 +348,6 @@ class _StatusHero extends StatelessWidget {
         ],
       ),
     );
-    // ignore: dead_code
-    theme; // reserved
   }
 
   static IconData _iconFor(LoanStatus s) {

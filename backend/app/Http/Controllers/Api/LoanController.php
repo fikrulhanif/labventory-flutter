@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *   POST   /api/loans                 — create a pending loan request
  *   GET    /api/loans/{id}            — detail (owner only)
  *   GET    /api/loans/{id}/document   — gated KTM stream (owner or staff)
+ *   DELETE /api/loans/{id}            — cancel a pending loan (owner only)
  *
  * Validates Requirements 8.1 — 8.9, 11.1 — 11.5, 18.6.
  */
@@ -106,5 +107,40 @@ class LoanController extends Controller
         }
 
         return $disk->download($loan->document);
+    }
+
+    /**
+     * DELETE /api/loans/{id} — student cancels a pending loan.
+     *
+     * Only the loan owner can cancel, and only when status is `pending`.
+     * The KTM document is retained (matches the existing rejected/returned
+     * behaviour from Requirement 18.4).
+     */
+    public function cancel(Request $request, int $id): JsonResponse
+    {
+        try {
+            $loan = Loan::with(['inventory'])->findOrFail($id);
+        } catch (ModelNotFoundException) {
+            return ApiResponse::notFound('Loan not found');
+        }
+
+        // Ownership check
+        if ($loan->user_id !== $request->user()->id) {
+            return ApiResponse::forbidden('Forbidden');
+        }
+
+        // Only pending loans can be cancelled
+        if ($loan->status !== Loan::STATUS_PENDING) {
+            return ApiResponse::error(
+                'Hanya peminjaman dengan status menunggu yang dapat dibatalkan.',
+                422,
+            );
+        }
+
+        $loan->status = Loan::STATUS_REJECTED;
+        $loan->reject_reason = 'Dibatalkan oleh mahasiswa.';
+        $loan->save();
+
+        return ApiResponse::message('Peminjaman berhasil dibatalkan.');
     }
 }

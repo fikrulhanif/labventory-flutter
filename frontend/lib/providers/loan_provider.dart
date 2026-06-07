@@ -167,6 +167,34 @@ class LoanProvider extends ChangeNotifier {
     return null;
   }
 
+  /// Cancel a pending loan. Returns `true` on success.
+  /// On success the loan is updated in the in-memory list to `rejected`
+  /// so the UI reflects the change immediately without a full reload.
+  Future<bool> cancelLoan(int id) async {
+    try {
+      final response = await _service.cancel(id);
+      if (response.success) {
+        // Optimistic: update status in the cached list
+        final idx = _items.indexWhere((l) => l.id == id);
+        if (idx != -1) {
+          final updated = Loan.fromJson({
+            ..._items[idx].toJson(),
+            'status': 'rejected',
+            'reject_reason': 'Dibatalkan oleh mahasiswa.',
+          });
+          _items[idx] = updated;
+          notifyListeners();
+        }
+        return true;
+      }
+      _submitError = response.message;
+      return false;
+    } catch (e) {
+      _submitError = 'Kesalahan jaringan: ${e.toString()}';
+      return false;
+    }
+  }
+
   void _captureErrors<T>(ApiResponse<T> response) {
     _submitError = response.message.isNotEmpty
         ? response.message

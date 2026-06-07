@@ -55,4 +55,7 @@ class ApiConstants {
   static const String notificationsUnreadCount = '/notifications/unread-count';
   static const String notificationsReadAll = '/notifications/read-all';
   static String notificationRead(int id) => '/notifications/$id/read';
+
+  // ── Cancel loan ────────────────────────────────────────────────
+  static String loanCancel(int id) => '/loans/$id';
 }

@@ -128,7 +128,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                       children: [
                         _Chip(
                           icon: Icons.category_outlined,
-                          label: inv.category?.name ?? 'Uncategorized',
+                          label: inv.category?.name ?? 'Tanpa Kategori',
                           color: AppColors.primary,
                         ),
                         _Chip(
@@ -142,8 +142,10 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                         ),
                         _Chip(
                           icon: Icons.inventory_2_outlined,
-                          label: 'Stock ${inv.stock}',
-                          color: AppColors.statusBorrowed,
+                          label: '${inv.stock} unit',
+                          color: inv.stock > 0
+                              ? AppColors.statusBorrowed
+                              : AppColors.statusRejected,
                         ),
                       ],
                     ),
@@ -237,27 +239,47 @@ class _CodeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.qr_code_2, size: 14, color: theme.colorScheme.primary),
-          const SizedBox(width: 4),
-          Text(
-            code,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: theme.colorScheme.primary,
-              letterSpacing: 0.3,
-            ),
+    return GestureDetector(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: code));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Kode inventaris disalin'),
+            duration: Duration(seconds: 2),
           ),
-        ],
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: theme.colorScheme.primary.withValues(alpha: 0.20),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.qr_code_2, size: 14, color: theme.colorScheme.primary),
+            const SizedBox(width: 6),
+            Text(
+              code,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.primary,
+                letterSpacing: 0.3,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.copy_outlined,
+              size: 12,
+              color: theme.colorScheme.primary.withValues(alpha: 0.70),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -327,7 +349,7 @@ class _InfoCard extends StatelessWidget {
             const SizedBox(height: 10),
             _kv(theme, 'Kategori', inv.category?.name ?? '—'),
             const SizedBox(height: 10),
-            _kv(theme, 'Stok saat ini', inv.stock.toString()),
+            _kv(theme, 'Stok tersedia', '${inv.stock} unit'),
             const SizedBox(height: 10),
             _kv(theme, 'Status', inv.isAvailable ? 'Tersedia' : 'Stok Habis'),
           ],

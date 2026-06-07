@@ -297,101 +297,187 @@ class _LoanStatsRow extends StatelessWidget {
               l.status == LoanStatus.borrowed,
         )
         .length;
+    final rejected = loans.where((l) => l.status == LoanStatus.rejected).length;
     final rate = total == 0 ? 0 : ((returned / total) * 100).round();
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-        child: Row(
-          children: [
-            _MiniStat(
-              value: total.toString(),
-              label: 'Total Peminjaman',
-              icon: Icons.history,
-              color: AppColors.primary,
+    // Badge logic
+    final String? badgeLabel;
+    final Color? badgeColor;
+    if (total >= 10 && rate >= 90) {
+      badgeLabel = '🏆 Mahasiswa Terpercaya';
+      badgeColor = AppColors.statusPending;
+    } else if (total >= 5 && rate >= 80) {
+      badgeLabel = '⭐ Peminjam Aktif';
+      badgeColor = AppColors.primary;
+    } else if (total >= 1) {
+      badgeLabel = '📦 Peminjam Baru';
+      badgeColor = AppColors.statusApproved;
+    } else {
+      badgeLabel = null;
+      badgeColor = null;
+    }
+
+    return Column(
+      children: [
+        // Stats grid
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant,
+              width: 0.6,
             ),
-            _MiniDivider(),
-            _MiniStat(
-              value: active.toString(),
-              label: 'Aktif',
-              icon: Icons.local_shipping_outlined,
-              color: AppColors.statusBorrowed,
-            ),
-            _MiniDivider(),
-            _MiniStat(
-              value: returned.toString(),
-              label: 'Dikembalikan',
-              icon: Icons.check_circle_outline,
-              color: AppColors.statusReturned,
-            ),
-            _MiniDivider(),
-            _MiniStat(
-              value: '$rate%',
-              label: 'Tingkat Pengembalian',
-              icon: Icons.analytics_outlined,
-              color: AppColors.accent,
-            ),
-          ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  _StatBox(
+                    value: total.toString(),
+                    label: 'Total\nPeminjaman',
+                    icon: Icons.history_rounded,
+                    color: AppColors.primary,
+                    theme: theme,
+                  ),
+                  const SizedBox(width: 10),
+                  _StatBox(
+                    value: active.toString(),
+                    label: 'Sedang\nBerjalan',
+                    icon: Icons.local_shipping_outlined,
+                    color: AppColors.statusBorrowed,
+                    theme: theme,
+                  ),
+                  const SizedBox(width: 10),
+                  _StatBox(
+                    value: returned.toString(),
+                    label: 'Telah\nDikembalikan',
+                    icon: Icons.check_circle_outline_rounded,
+                    color: AppColors.statusReturned,
+                    theme: theme,
+                  ),
+                  const SizedBox(width: 10),
+                  _StatBox(
+                    value: '$rate%',
+                    label: 'Tingkat\nKetepatan',
+                    icon: Icons.analytics_outlined,
+                    color: rate >= 80
+                        ? AppColors.statusReturned
+                        : AppColors.statusPending,
+                    theme: theme,
+                  ),
+                ],
+              ),
+              if (rejected > 0) ...[
+                const SizedBox(height: 12),
+                Divider(color: theme.colorScheme.outlineVariant, height: 1),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 14,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$rejected peminjaman ditolak atau dibatalkan',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
         ),
-      ),
+
+        // Badge
+        if (badgeLabel != null) ...[
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            decoration: BoxDecoration(
+              color: badgeColor!.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: badgeColor.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.workspace_premium_rounded,
+                  size: 18,
+                  color: badgeColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  badgeLabel,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: badgeColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
-    // ignore: dead_code
-    theme; // reserved
   }
 }
 
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
+class _StatBox extends StatelessWidget {
+  const _StatBox({
     required this.value,
     required this.label,
     required this.icon,
     required this.color,
+    required this.theme,
   });
   final String value;
   final String label;
   final IconData icon;
   final Color color;
+  final ThemeData theme;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Expanded(
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: color,
+                fontSize: 18,
+              ),
             ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.3,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(fontSize: 10),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class _MiniDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 32,
-      color: Theme.of(context).colorScheme.outlineVariant,
     );
   }
 }

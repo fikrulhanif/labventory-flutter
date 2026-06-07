@@ -61,6 +61,9 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/loans/{id}', [LoanController::class, 'show'])
             ->whereNumber('id')
             ->name('api.loans.show');
+        Route::delete('/loans/{id}', [LoanController::class, 'cancel'])
+            ->whereNumber('id')
+            ->name('api.loans.cancel');
     });
 
     // ── Notification center (in-app, database-backed, no push/FCM) ──

@@ -10,6 +10,7 @@ import '../screens/loan/create_screen.dart';
 import '../screens/loan/detail_screen.dart';
 import '../screens/loan/history_screen.dart';
 import '../screens/notifications/notification_screen.dart';
+import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/shell/app_shell.dart';
@@ -43,6 +44,9 @@ class AppRouter {
   // Notification center
   static const String notifications = '/notifications';
 
+  // Onboarding
+  static const String onboarding = '/onboarding';
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
@@ -73,6 +77,13 @@ class AppRouter {
         return _build(settings, const AdminLoanActionScreen());
       case notifications:
         return _build(settings, const NotificationScreen());
+      case onboarding:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (ctx) => OnboardingScreen(
+            onDone: () => Navigator.of(ctx).pushReplacementNamed(login),
+          ),
+        );
       default:
         return _build(
           settings,

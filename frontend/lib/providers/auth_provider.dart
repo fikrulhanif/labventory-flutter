@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/api_response.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
+import '../utils/onboarding_storage.dart';
 import '../utils/token_storage.dart';
 
 /// State of the auth flow consumed by the splash/login/register screens.
@@ -127,6 +128,9 @@ class AuthProvider extends ChangeNotifier {
       _validationErrors = {};
       _errorMessage = null;
       _isLoading = false;
+      // Reset onboarding flag so the next fresh login on this device
+      // sees onboarding again (consistent with a clean install feel).
+      await OnboardingStorage.reset();
       _setState(AuthState.unauthenticated);
     }
   }

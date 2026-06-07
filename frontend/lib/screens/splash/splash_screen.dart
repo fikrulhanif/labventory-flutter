@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_router.dart';
+import '../../utils/onboarding_storage.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -57,12 +58,23 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _resolve() async {
     final auth = context.read<AuthProvider>();
+
+    // Check onboarding FIRST, before bootstrap, so it always shows
+    // on a fresh install regardless of whether a token exists.
+    final onboardingDone = await OnboardingStorage.isDone();
+    if (!mounted) return;
+
+    if (!onboardingDone) {
+      Navigator.of(context).pushReplacementNamed(AppRouter.onboarding);
+      return;
+    }
+
+    // Onboarding already done — proceed with normal auth bootstrap.
     await auth.bootstrap();
     if (!mounted) return;
+
     final String next;
     if (auth.isAuthenticated) {
-      // Route staff (admin/laboran) to the admin shell, students to the
-      // standard shell (Requirement 19.8).
       next = auth.isStaff ? AppRouter.adminHome : AppRouter.home;
     } else {
       next = AppRouter.login;

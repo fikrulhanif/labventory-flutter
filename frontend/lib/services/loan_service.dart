@@ -84,6 +84,15 @@ class LoanService {
     );
   }
 
+  /// `DELETE /loans/{id}` — cancel a pending loan (student only).
+  Future<ApiResponse<void>> cancel(int id) async {
+    final response = await _dio.delete<dynamic>(ApiConstants.loanCancel(id));
+    return ApiResponse<void>.fromEnvelope(
+      _envelopeFrom(response),
+      statusCode: response.statusCode,
+    );
+  }
+
   // -- helpers --
 
   String _formatDate(DateTime d) =>
