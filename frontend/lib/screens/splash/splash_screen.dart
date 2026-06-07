@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _loaderFade;
 
   String? _nextRoute;
-  static const _minMs = 2000;
+  static const _minMs = 4000;
 
   @override
   void initState() {
